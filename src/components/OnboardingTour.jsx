@@ -1,5 +1,5 @@
 import React from 'react';
-import Joyride, { STATUS } from 'react-joyride';
+import { Joyride, STATUS } from 'react-joyride';
 import { motion } from 'framer-motion';
 import styled from 'styled-components';
 import { useOnboarding } from '../context/OnboardingContext';
