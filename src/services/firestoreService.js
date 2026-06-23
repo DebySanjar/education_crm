@@ -9,6 +9,7 @@ import {
   onSnapshot,
   query,
   orderBy,
+  where,
   serverTimestamp
 } from 'firebase/firestore'
 import { db } from '../config/firebase'
@@ -26,6 +27,7 @@ const COLLECTIONS = {
 // STUDENTS
 // ═══════════════════════════════════════════════════════════
 
+// Barcha o'quvchilar — faqat Dashboard/Payments/Statistics uchun
 export const subscribeToStudents = (callback) => {
   try {
     const q = query(collection(db, COLLECTIONS.STUDENTS), orderBy('joinDate', 'desc'))
@@ -35,6 +37,21 @@ export const subscribeToStudents = (callback) => {
   } catch {
     callback([])
     return () => {}
+  }
+}
+
+// Guruh bo'yicha — faqat Students sahifasi uchun (performance)
+export const fetchStudentsByGroup = async (groupName) => {
+  try {
+    const q = query(
+      collection(db, COLLECTIONS.STUDENTS),
+      where('group', '==', groupName),
+      orderBy('joinDate', 'desc')
+    )
+    const snapshot = await getDocs(q)
+    return { success: true, data: snapshot.docs.map(d => ({ id: d.id, ...d.data() })) }
+  } catch (error) {
+    return { success: false, data: [], error: error.message }
   }
 }
 

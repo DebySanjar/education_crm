@@ -1,42 +1,90 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // Students collection
+
+    // ═══════════════════════════════════════════════════════════
+    // Helper functions
+    // ═══════════════════════════════════════════════════════════
+
+    // Foydalanuvchi login qilganmi
+    function isAuth() {
+      return request.auth != null;
+    }
+
+    // Super admin — to'liq huquq
+    function isSuperAdmin() {
+      return isAuth() && request.auth.token.email == 'bu@boss.uz';
+    }
+
+    // Istalgan admin (super yoki limited)
+    function isAnyAdmin() {
+      return isAuth() && (
+        request.auth.token.email == 'bu@boss.uz' ||
+        request.auth.token.email == 'bu@admin.uz'
+      );
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // Students
+    // ═══════════════════════════════════════════════════════════
     match /students/{studentId} {
-      allow read: if true;  // Hamma o'qiy oladi
-      allow write: if true; // Hozircha hamma yoza oladi (keyinroq auth qo'shiladi)
+      allow read:   if isAnyAdmin();
+      allow create: if isAnyAdmin();
+      allow update: if isAnyAdmin();
+      allow delete: if isSuperAdmin();   // faqat super admin o'chira oladi
     }
-    
-    
-    // Payments collection
+
+    // ═══════════════════════════════════════════════════════════
+    // Payments
+    // ═══════════════════════════════════════════════════════════
     match /payments/{paymentId} {
-      allow read: if true;
-      allow write: if true;
+      allow read:          if isAnyAdmin();
+      allow create:        if isAnyAdmin();
+      allow update:        if isAnyAdmin();
+      allow delete:        if isSuperAdmin();
     }
-    
-    // Attendance collection
+
+    // ═══════════════════════════════════════════════════════════
+    // Attendance
+    // ═══════════════════════════════════════════════════════════
     match /attendance/{date} {
-      allow read: if true;
-      allow write: if true;
+      allow read:   if isAnyAdmin();
+      allow write:  if isAnyAdmin();
     }
-    
-    // Expenses collection
+
+    // ═══════════════════════════════════════════════════════════
+    // Expenses
+    // ═══════════════════════════════════════════════════════════
     match /expenses/{expenseId} {
-      allow read: if true;
-      allow write: if true;
+      allow read:   if isAnyAdmin();
+      allow create: if isAnyAdmin();
+      allow update: if isAnyAdmin();
+      allow delete: if isSuperAdmin();
     }
-    
-    // Groups collection
+
+    // ═══════════════════════════════════════════════════════════
+    // Groups
+    // ═══════════════════════════════════════════════════════════
     match /groups/{groupId} {
-      allow read: if true;
-      allow write: if true;
+      allow read:   if isAnyAdmin();
+      allow create: if isSuperAdmin();   // guruh qo'shish faqat super admin
+      allow update: if isSuperAdmin();
+      allow delete: if isSuperAdmin();
     }
-    
-    // Balance collection
+
+    // ═══════════════════════════════════════════════════════════
+    // Balance
+    // ═══════════════════════════════════════════════════════════
     match /balance/{balanceId} {
-      allow read: if true;
-      allow write: if true;
+      allow read:  if isAnyAdmin();
+      allow write: if isAnyAdmin();
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // Boshqa barcha documentlar — ruxsat yo'q
+    // ═══════════════════════════════════════════════════════════
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }

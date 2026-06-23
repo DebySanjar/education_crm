@@ -10,39 +10,10 @@ import {
 
 const TOTAL_DAYS = 15
 
-// Guruh nomi asosida ruxsat etilgan vaqt oralig'ini qaytaradi
-// { start: 'HH:MM', end: 'HH:MM' } yoki null (cheklovsiz)
-const GROUP_SCHEDULE = {
-  'Ertalabki': { start: '08:00', end: '09:30' },
-  'Abetki':    { start: '09:31', end: '13:30' },
-  'Kechki':    { start: '13:31', end: '18:30' },
-}
-
-
-// Hozirgi vaqt HH:MM formatda
-const getCurrentTime = () => {
-  const now = new Date()
-  const hh = String(now.getHours()).padStart(2, '0')
-  const mm = String(now.getMinutes()).padStart(2, '0')
-  return `${hh}:${mm}`
-}
-
-// Guruh uchun davomat qilish mumkinmi? (faqat bugun + vaqt oralig'i)
-const canEditGroup = (groupName, selectedDate) => {
+// Faqat bugun bo'lsa tahrirlash mumkin
+const canEditGroup = (selectedDate) => {
   const today = new Date().toISOString().split('T')[0]
-  if (selectedDate !== today) return false
-  const schedule = Object.entries(GROUP_SCHEDULE).find(([key]) => groupName?.includes(key))
-  if (!schedule) return true // noma'lum guruh — cheklov yo'q
-  const now = getCurrentTime()
-  return now >= schedule[1].start && now <= schedule[1].end
-}
-
-// Guruh jadval matnini qaytaradi: "08:00 – 09:30"
-const getScheduleLabel = (groupName) => {
-  const entry = Object.entries(GROUP_SCHEDULE).find(([key]) => groupName?.includes(key))
-  if (!entry) return null
-  return `${entry[1].start} – ${entry[1].end}`
-  
+  return selectedDate === today
 }
 
 export default function Attendance() {
@@ -54,13 +25,6 @@ export default function Attendance() {
   const [localAtt, setLocalAtt] = useState({})
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
-  const [, tick] = useState(0) 
-
-  // Har 30 soniyada vaqtni yangilash — canEdit ni qayta hisoblash uchun
-  useEffect(() => {
-    const id = setInterval(() => tick(t => t + 1), 30_000)
-    return () => clearInterval(id)
-  }, [])
 
   useEffect(() => {
     refreshAttendance()
@@ -94,9 +58,7 @@ export default function Attendance() {
   const presentCount = filtered.filter(s => localAtt[s.id] === 1).length
   const absentCount  = filtered.filter(s => localAtt[s.id] !== 1).length
 
-  // Joriy guruh uchun tahrirlash mumkinmi
-  const canEdit = canEditGroup(selectedGroup, selectedDate)
-  const scheduleLabel = getScheduleLabel(selectedGroup)
+  const canEdit = canEditGroup(selectedDate)
 
   const handleToggle = (studentId) => {
     if (!canEdit) return
@@ -230,16 +192,8 @@ export default function Attendance() {
 
         {/* Guruh tablari — vaqt tartibida: Ertalabki → Abetki → Kechgi */}
         <GroupTabsRow>
-          {[...groups].sort((a, b) => {
-            const order = ['Ertalabki', 'Abetki', 'Kechgi']
-            const ai = order.findIndex(k => a.name?.includes(k))
-            const bi = order.findIndex(k => b.name?.includes(k))
-            const av = ai === -1 ? 99 : ai
-            const bv = bi === -1 ? 99 : bi
-            return av - bv
-          }).map(g => {
+          {groups.map(g => {
             const cnt = students.filter(s => s.group === g.name).length
-            const schedule = getScheduleLabel(g.name)
             return (
               <GroupTab
                 key={g.id}
@@ -247,7 +201,6 @@ export default function Attendance() {
                 onClick={() => setSelectedGroup(g.name)}
               >
                 <span className="name">{g.name}</span>
-                {schedule && <span className="time">{schedule}</span>}
                 <GroupCount $active={selectedGroup === g.name}>{cnt}</GroupCount>
               </GroupTab>
             )
@@ -424,11 +377,6 @@ const GroupTab = styled.button`
   transition: all 0.12s ease;
 
   .name { font-weight: 700; letter-spacing: 0.2px; }
-  .time {
-    font-size: 0.7rem;
-    opacity: ${({ $active }) => $active ? '0.7' : '0.45'};
-    letter-spacing: 0.3px;
-  }
 
   &:hover {
     background: ${({ $active }) => $active ? '#00e0ff' : '#242838'};
