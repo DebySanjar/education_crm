@@ -300,64 +300,60 @@ export default function Statistics() {
           viewport={{ once: true, margin: "-100px" }}
         >
           <ChartCard>
-            <ChartHeader>
-              <ChartTitle>Guruhlar bo'yicha</ChartTitle>
-            </ChartHeader>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={groupPie}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                  outerRadius={100}
-                  fill="#8884d8"
-                  dataKey="value"
-                  animationBegin={0}
-                  animationDuration={1500}
-                >
-                  {groupPie.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip {...tooltipStyle} />
-              </PieChart>
-            </ResponsiveContainer>
-          </ChartCard>
-        </motion.div>
-
-        <motion.div
-          variants={itemVariants}
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true, margin: "-100px" }}
-        >
-          <ChartCard>
-            <ChartHeader>
-              <ChartTitle>To'lov holati</ChartTitle>
-            </ChartHeader>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={payPie}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                  outerRadius={100}
-                  fill="#8884d8"
-                  dataKey="value"
-                  animationBegin={0}
-                  animationDuration={1500}
-                >
-                  {payPie.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip {...tooltipStyle} />
-              </PieChart>
-            </ResponsiveContainer>
+            <ChartsRow>
+              <ChartWrapper>
+                <ChartHeader>
+                  <ChartTitle>Guruhlar bo'yicha</ChartTitle>
+                </ChartHeader>
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={groupPie}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                      animationBegin={0}
+                      animationDuration={1500}
+                    >
+                      {groupPie.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip {...tooltipStyle} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </ChartWrapper>
+              <ChartWrapper>
+                <ChartHeader>
+                  <ChartTitle>To'lov holati</ChartTitle>
+                </ChartHeader>
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={payPie}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                      animationBegin={0}
+                      animationDuration={1500}
+                    >
+                      {payPie.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip {...tooltipStyle} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </ChartWrapper>
+            </ChartsRow>
           </ChartCard>
         </motion.div>
 
@@ -537,6 +533,19 @@ const ChartsGrid = styled.div`
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
   }
+`
+
+const ChartsRow = styled.div`
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+`
+
+const ChartWrapper = styled.div`
+  flex: 1;
 `
 
 const ChartCard = styled.div`
