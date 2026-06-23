@@ -131,12 +131,12 @@ export default function Dashboard() {
 
   return (
     <Wrapper>
-      <PageHeader>
+      <PageHeader id="dashboard-welcome">
         <h2>Bosh sahifa</h2>
       </PageHeader>
 
       {/* ── Ticket Stat Cards ── */}
-      <TicketRow>
+      <TicketRow id="dashboard-kpis">
         {/* Card 1 — O'quvchilar */}
         <TicketCard $bg1="#00c6ff" $bg2="#0072ff">
           <TicketNotch $side="left" />

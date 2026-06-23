@@ -195,14 +195,14 @@ export default function Expenses() {
 
   return (
     <Wrapper>
-      <PageHeader>
+      <PageHeader id="expenses-header">
         <h2>Chiqimlar</h2>
         <HeaderActions>
           <ExportGroup>
             <ExcelTicketBtn onClick={() => exportExcel(15)} label="15 kunlik" subLabel="Chiqimlar" />
             <ExcelTicketBtn onClick={() => exportExcel(30)} label="30 kunlik" subLabel="Chiqimlar" />
           </ExportGroup>
-          {superAdmin && <AddBtn onClick={openAdd}><MdAdd /> Chiqim qo'shish</AddBtn>}
+          {superAdmin && <AddBtn id="add-expense-btn" onClick={openAdd}><MdAdd /> Chiqim qo'shish</AddBtn>}
         </HeaderActions>
       </PageHeader>
 

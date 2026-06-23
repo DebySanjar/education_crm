@@ -13,6 +13,8 @@ import Settings from './pages/Settings'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { DataProvider } from './context/DataContext'
 import { ToastProvider } from './context/ToastContext'
+import { OnboardingProvider } from './context/OnboardingContext'
+import OnboardingTour from './components/OnboardingTour'
 
 function PrivateRoute({ children }) {
   const { isLoggedIn } = useAuth()
@@ -21,27 +23,30 @@ function PrivateRoute({ children }) {
 
 function AppRoutes() {
   return (
-    <Routes>
-      <Route path="/login" element={<LoginPage />} />
-      <Route
-        path="/"
-        element={
-          <PrivateRoute>
-            <DashboardLayout />
-          </PrivateRoute>
-        }
-      >
-        <Route index element={<Dashboard />} />
-        <Route path="students" element={<Students />} />
-        <Route path="groups" element={<Groups />} />
-        <Route path="attendance" element={<Attendance />} />
-        <Route path="payments" element={<Payments />} />
-        <Route path="expenses" element={<Expenses />} />
-        <Route path="statistics" element={<Statistics />} />
-        <Route path="settings" element={<Settings />} />
-      </Route>
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+    <>
+      <OnboardingTour />
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route
+          path="/"
+          element={
+            <PrivateRoute>
+              <DashboardLayout />
+            </PrivateRoute>
+          }
+        >
+          <Route index element={<Dashboard />} />
+          <Route path="students" element={<Students />} />
+          <Route path="groups" element={<Groups />} />
+          <Route path="attendance" element={<Attendance />} />
+          <Route path="payments" element={<Payments />} />
+          <Route path="expenses" element={<Expenses />} />
+          <Route path="statistics" element={<Statistics />} />
+          <Route path="settings" element={<Settings />} />
+        </Route>
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </>
   )
 }
 
@@ -51,7 +56,9 @@ export default function App() {
       <AuthProvider>
         <ToastProvider>
           <DataProvider>
-            <AppRoutes />
+            <OnboardingProvider>
+              <AppRoutes />
+            </OnboardingProvider>
           </DataProvider>
         </ToastProvider>
       </AuthProvider>

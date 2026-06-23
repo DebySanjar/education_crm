@@ -174,16 +174,16 @@ export default function Students() {
 
   return (
     <Wrapper>
-      <PageHeader>
+      <PageHeader id="students-header">
         <h2>O'quvchilar ro'yxati</h2>
         <HeaderActions>
           <ExcelTicketBtn onClick={exportExcel} label="Excel" subLabel={selectedGroup || ''} />
-          <AddBtn onClick={openAdd}><MdAdd /> O'quvchi qo'shish</AddBtn>
+          <AddBtn id="add-student-btn" onClick={openAdd}><MdAdd /> O'quvchi qo'shish</AddBtn>
         </HeaderActions>
       </PageHeader>
 
       {/* Guruh tablari */}
-      <DesktopGroupTabs>
+      <DesktopGroupTabs id="students-groups">
         {groups.map(g => (
           <GroupTab key={g.id} $active={selectedGroup === g.name} onClick={() => handleGroupChange(g.name)}>
             {g.name}

@@ -181,6 +181,7 @@ export default function Statistics() {
         initial={{ opacity: 0, y: -30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, ease: "easeOut" }}
+        id="stats-header"
       >
         <PageHeader>
           <TitleBlock>
@@ -199,6 +200,7 @@ export default function Statistics() {
         variants={containerVariants}
         initial="hidden"
         animate="show"
+        id="stats-kpis"
       >
         <KpiGrid>
           {kpis.map((k, i) => (
@@ -234,7 +236,7 @@ export default function Statistics() {
       </motion.div>
 
       {/* Charts Grid */}
-      <ChartsGrid>
+      <ChartsGrid id="stats-charts">
         {/* Area Chart */}
         <motion.div
           variants={slideInLeft}

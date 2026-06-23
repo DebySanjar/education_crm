@@ -246,11 +246,11 @@ export default function Payments() {
 
   return (
     <Wrapper>
-      <PageHeader>
+      <PageHeader id="payments-header">
         <h2>To'lovlar (Kassa)</h2>
         <HeaderActions>
           <ExcelTicketBtn onClick={exportExcel} label="Excel" subLabel="To'lovlar" />
-          <AddBtn onClick={openModal}><MdAdd /> To'lov kiritish</AddBtn>
+          <AddBtn id="add-payment-btn" onClick={openModal}><MdAdd /> To'lov kiritish</AddBtn>
         </HeaderActions>
       </PageHeader>
 

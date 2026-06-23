@@ -45,7 +45,7 @@ export default function DashboardLayout() {
     <LayoutWrapper>
       {mobileOpen && <Overlay onClick={() => setMobileOpen(false)} />}
 
-      <Sidebar $collapsed={collapsed} $mobileOpen={mobileOpen}>
+      <Sidebar id="sidebar-nav" $collapsed={collapsed} $mobileOpen={mobileOpen}>
         <SidebarHeader $collapsed={collapsed}>
           {!collapsed && <LogoIcon><MdDirectionsCar /></LogoIcon>}
           {!collapsed && <LogoText>Admin<span>Panel</span></LogoText>}

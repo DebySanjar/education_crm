@@ -79,10 +79,10 @@ export default function Groups() {
 
   return (
     <Wrapper>
-      <PageHeader>
+      <PageHeader id="groups-header">
         <h2>Guruhlar</h2>
         {isSuperAdmin() && (
-          <AddBtn onClick={openAdd}><MdAdd /> Guruh qo'shish</AddBtn>
+          <AddBtn id="add-group-btn" onClick={openAdd}><MdAdd /> Guruh qo'shish</AddBtn>
         )}
       </PageHeader>
 
