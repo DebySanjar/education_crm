@@ -200,7 +200,8 @@ export default function OnboardingTour() {
 
   const handleJoyrideCallback = (data) => {
     const { status } = data;
-    if ([STATUS.FINISHED, STATUS.SKIPPED].includes(status)) {
+    // Tourni tugatish holatlari: FINISHED, SKIPPED yoki CLOSED
+    if ([STATUS.FINISHED, STATUS.SKIPPED, STATUS.CLOSED].includes(status)) {
       finishTour();
     }
   };
