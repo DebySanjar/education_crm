@@ -48,8 +48,12 @@ export function OnboardingProvider({ children }) {
     
     const storageKey = `onboarding_completed_${currentUser.email}`
     setTourCompleted(false)
-    setRunTour(true)
     localStorage.removeItem(storageKey)
+    
+    // Tourni darhol boshlash
+    setTimeout(() => {
+      setRunTour(true)
+    }, 100)
   }
 
   return (

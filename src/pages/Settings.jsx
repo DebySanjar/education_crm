@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import { useData } from '../context/DataContext'
 import { useToast } from '../context/ToastContext'
 import { useOnboarding } from '../context/OnboardingContext'
+import { useNavigate } from 'react-router-dom'
 import { MdSave, MdCheckCircle, MdTimer, MdDeleteForever, MdWarning, MdRefresh } from 'react-icons/md'
 
 export default function Settings() {
@@ -17,7 +18,14 @@ export default function Settings() {
 
   const { clearAllData } = useData()
   const { restartTour } = useOnboarding()
+  const navigate = useNavigate()
   const toast = useToast()
+
+  const handleRestartTour = () => {
+    restartTour()
+    // Dashboard sahifasiga yo'naltirish
+    navigate('/')
+  }
 
   const [tempAutoLogoutMinutes, setTempAutoLogoutMinutes] = useState(autoLogoutMinutes.toString())
   const [saveSuccess, setSaveSuccess] = useState(false)
@@ -53,7 +61,7 @@ export default function Settings() {
           <SectionTitle>Onboarding turini qayta boshlash</SectionTitle>
         </SectionHeader>
         <SectionBody>
-          <RestartTourButton onClick={restartTour}>
+          <RestartTourButton onClick={handleRestartTour}>
             <MdRefresh />
             Tourni qayta ko'rsatish
           </RestartTourButton>
