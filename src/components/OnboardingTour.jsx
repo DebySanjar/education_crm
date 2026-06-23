@@ -6,6 +6,7 @@ import { useOnboarding } from '../context/OnboardingContext';
 import { useLocation } from 'react-router-dom';
 
 // Fixed deploy uchun xatosini tuzatish uchun barcha style-lar styled componentsga olib chiqildi
+// Barcha step larga disableBeacon qo'shildi, shunda beacon (qora nuqta) yo'qoladi
 
 const TooltipContainer = styled.div`
   padding: 20px;
