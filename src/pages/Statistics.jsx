@@ -1,341 +1,563 @@
-import React from 'react'
-import styled from 'styled-components'
+import { useEffect, useRef, useState } from 'react'
+import styled, { keyframes } from 'styled-components'
+import { motion, useInView } from 'framer-motion'
 import { useData } from '../context/DataContext'
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  LineChart, Line, PieChart, Pie, Cell, Legend,
+  AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid,
+  Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend,
 } from 'recharts'
-import {
-  TicketRow, TicketCard, TicketNotch, TicketDashes,
-  TicketContent, TicketLabel, TicketValue, TicketSub, TicketIllustration,
-} from '../components/TicketCards'
 
 const COLORS = ['#00e0ff', '#7c3aed', '#10b981', '#f59e0b', '#ff6b6b']
 
-const formatSum = (val) => {
-  if (!val && val !== 0) return '0'
-  return Number(val).toLocaleString('ru-RU')
+const fmt = (v) => {
+  if (!v && v !== 0) return '0'
+  return Number(v).toLocaleString('ru-RU')
 }
+
+// Animated number component using framer-motion
+function AnimatedNumber({ value, prefix = '', suffix = '' }) {
+  const ref = useRef(null)
+  const inView = useInView(ref, { once: true, margin: '-100px' })
+  const [displayValue, setDisplayValue] = useState(0)
+
+  useEffect(() => {
+    if (!inView) return
+    
+    const duration = 1500
+    const startTime = performance.now()
+    
+    const animate = (currentTime) => {
+      const elapsed = currentTime - startTime
+      const progress = Math.min(elapsed / duration, 1)
+      // Ease out cubic
+      const eased = 1 - Math.pow(1 - progress, 3)
+      const current = Math.round(value * eased)
+      setDisplayValue(current)
+      
+      if (progress < 1) {
+        requestAnimationFrame(animate)
+      }
+    }
+    
+    requestAnimationFrame(animate)
+  }, [inView, value])
+
+  return (
+    <span ref={ref}>
+      {prefix}{displayValue.toLocaleString('ru-RU')}{suffix}
+    </span>
+  )
+}
+
+// Framer variants
+const containerVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.15,
+      delayChildren: 0.2
+    }
+  }
+}
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 40 },
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.6,
+      ease: [0.22, 1, 0.36, 1]
+    }
+  }
+}
+
+const scaleBounce = {
+  hidden: { opacity: 0, scale: 0.7 },
+  show: {
+    opacity: 1,
+    scale: 1,
+    transition: {
+      type: "spring",
+      stiffness: 300,
+      damping: 20
+    }
+  }
+}
+
+const slideInLeft = {
+  hidden: { opacity: 0, x: -60 },
+  show: {
+    opacity: 1,
+    x: 0,
+    transition: {
+      duration: 0.7,
+      ease: "easeOut"
+    }
+  }
+}
+
+const slideInRight = {
+  hidden: { opacity: 0, x: 60 },
+  show: {
+    opacity: 1,
+    x: 0,
+    transition: {
+      duration: 0.7,
+      ease: "easeOut"
+    }
+  }
+}
+
+const pulse = keyframes`
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+`
 
 export default function Statistics() {
   const { students, payments, expenses } = useData()
 
-  // Haftalik grafik
-  // Tushum = students.paid jami (barcha vaqt uchun kumulativ) — har kun o'zgarmaydi
-  // Chunki students.paid = boshlang'ich to'lov + keyingi payments hammasi
-  // Grafik uchun: har kun uchun shu kunga qadar bo'lgan payments + o'sha kunda qo'shilgan students.paid
-  const getChartData = () => {
-    const dayNames = ['Yak', 'Dush', 'Sesh', 'Chor', 'Pay', 'Jum', 'Shan']
-    const today = new Date()
-    const dayOfWeek = today.getDay()
-    const daysToMonday = (dayOfWeek + 6) % 7
-
-    // Jami tushum = barcha students.paid (payments + boshlang'ich to'lovlar)
-    const totalRevenue = students.reduce((s, st) => s + (st.paid || 0), 0)
-
-    const data = []
-    const maxDays = daysToMonday + 1
-
-    for (let i = 0; i < maxDays; i++) {
-      const date = new Date(today)
-      date.setDate(today.getDate() - daysToMonday + i)
-      const dateStr = date.toISOString().split('T')[0]
-
-      // Shu kunga qadar bo'lgan chiqimlar (kumulativ)
-      const chiqim = expenses
-        .filter(e => e.date <= dateStr)
-        .reduce((s, e) => s + e.amount, 0)
-
-      // Tushum: payments collectionidan shu kunga qadar + students.paid dan
-      // payments collection da faqat keyingi to'lovlar bor
-      // students.paid da esa hammasi (boshlang'ich + keyingi) bor
-      // Shuning uchun jami tushum = totalRevenue (o'zgarmaydi hafta ichida)
-      // Ammo grafikda o'sishni ko'rsatish uchun: shu kunda qo'shilgan payments ni hisoblaymiz
-      const paymentsUpToDate = payments
-        .filter(p => p.date <= dateStr)
-        .reduce((s, p) => s + p.amount, 0)
-
-      // Boshlang'ich to'lovlar (payments da yo'q, students.paid da bor)
-      const initialPaid = totalRevenue - payments.reduce((s, p) => s + p.amount, 0)
-
-      // Shu kunga qadar tushum = boshlang'ich to'lovlar + shu kunga qadar payments
-      const tushum = initialPaid + paymentsUpToDate
-
-      data.push({
-        kun: dayNames[date.getDay()],
-        tushum,
-        chiqim,
-        foyda: tushum - chiqim,
-      })
-    }
-    return data
-  }
-
-  const chartData = getChartData()
-
-  // Group distribution
-  const groupCounts = students.reduce((acc, s) => {
-    acc[s.group] = (acc[s.group] || 0) + 1
-    return acc
-  }, {})
-  const groupPieData = Object.entries(groupCounts).map(([name, value]) => ({ name, value }))
-
-  // Med status
-  const medOk = students.filter(s => s.medStatus === 'Topshirilgan').length
-  const medNo = students.filter(s => s.medStatus === 'Topshirilmagan').length
-  const medPieData = [
-    { name: 'Topshirilgan', value: medOk },
-    { name: 'Topshirilmagan', value: medNo },
-  ]
-
-  // Payment status
-  const fullyPaid = students.filter(s => s.paid >= s.contractSum).length
-  const partial = students.filter(s => s.paid > 0 && s.paid < s.contractSum).length
-  const notPaid = students.filter(s => s.paid === 0).length
-  const payPieData = [
-    { name: "To'liq to'lagan", value: fullyPaid },
-    { name: 'Qisman', value: partial },
-    { name: "To'lamagan", value: notPaid },
-  ]
-
   const totalRevenue = students.reduce((s, st) => s + (st.paid || 0), 0)
   const totalExpenses = expenses.reduce((s, e) => s + e.amount, 0)
-  const totalDebt = students.reduce((s, st) => s + (st.contractSum - st.paid), 0)
   const netProfit = totalRevenue - totalExpenses
+
+  // KPI cards
+  const kpis = [
+    { label: "Jami o'quvchilar", value: students.length, suffix: ' ta', color: '#00e0ff', icon: '👥',
+      sub: `${students.filter(s => s.paid > 0).length} ta to'lov qilgan` },
+    { label: 'Jami tushum', value: totalRevenue, suffix: " so'm", color: '#10b981', icon: '💰',
+      sub: `${payments.length} ta to'lov` },
+    { label: 'Jami chiqim', value: totalExpenses, suffix: " so'm", color: '#ff6b6b', icon: '📤',
+      sub: `${expenses.length} ta chiqim` },
+    { label: 'Sof foyda', value: netProfit, suffix: " so'm", color: '#f59e0b', icon: '📈',
+      sub: 'Tushum − Chiqim' },
+  ]
+
+  // Chart data
+  const getChartData = () => {
+    const days = ['Yak','Dush','Sesh','Chor','Pay','Jum','Shan']
+    const today = new Date()
+    const dow = today.getDay()
+    const toMon = (dow + 6) % 7
+    const totalRev = students.reduce((s, st) => s + (st.paid || 0), 0)
+
+    return Array.from({ length: toMon + 1 }, (_, i) => {
+      const d = new Date(today)
+      d.setDate(today.getDate() - toMon + i)
+      const ds = d.toISOString().split('T')[0]
+      const paymentsUpTo = payments.filter(p => p.date <= ds).reduce((s, p) => s + p.amount, 0)
+      const initialPaid = totalRev - payments.reduce((s, p) => s + p.amount, 0)
+      const tushum = initialPaid + paymentsUpTo
+      const chiqim = expenses.filter(e => e.date <= ds).reduce((s, e) => s + e.amount, 0)
+      return { kun: days[d.getDay()], tushum, chiqim, foyda: tushum - chiqim }
+    })
+  }
+  const chartData = getChartData()
+
+  // Pie data
+  const groupCounts = students.reduce((acc, s) => { acc[s.group] = (acc[s.group] || 0) + 1; return acc }, {})
+  const groupPie = Object.entries(groupCounts).map(([name, value]) => ({ name, value }))
+  const medPie = [
+    { name: 'Topshirilgan', value: students.filter(s => s.medStatus === 'Topshirilgan').length },
+    { name: 'Topshirilmagan', value: students.filter(s => s.medStatus === 'Topshirilmagan').length },
+  ]
+  const payPie = [
+    { name: "To'liq to'lagan", value: students.filter(s => s.paid >= s.contractSum).length },
+    { name: 'Qisman', value: students.filter(s => s.paid > 0 && s.paid < s.contractSum).length },
+    { name: "To'lamagan", value: students.filter(s => s.paid === 0).length },
+  ]
+
+  const tooltipStyle = {
+    contentStyle: { background: '#1a1d2e', border: '1px solid #2d3748', borderRadius: 8 },
+    labelStyle: { color: '#e2e8f0' },
+    itemStyle: { color: '#e2e8f0' },
+  }
 
   return (
     <Wrapper>
-      <PageHeader>
-        <h2>Statistika</h2>
-      </PageHeader>
+      {/* Header */}
+      <motion.div 
+        initial={{ opacity: 0, y: -30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+      >
+        <PageHeader>
+          <TitleBlock>
+            <PageTitle>Statistika</PageTitle>
+            <PageSub>Real-time moliyaviy ko'rsatkichlar</PageSub>
+          </TitleBlock>
+          <LiveBadge>
+            <LiveDot />
+            <span>Live</span>
+          </LiveBadge>
+        </PageHeader>
+      </motion.div>
 
-      {/* ── Ticket KPI Row ── */}
-      <TicketRow>
-        {/* O'quvchilar */}
-        <TicketCard $bg1="#00c6ff" $bg2="#0072ff">
-          <TicketNotch $side="left" />
-          <TicketNotch $side="right" />
-          <TicketDashes />
-          <TicketContent>
-            <TicketLabel>Jami o'quvchilar</TicketLabel>
-            <TicketValue>{students.length}</TicketValue>
-            <TicketSub>Faol o'quvchilar soni</TicketSub>
-          </TicketContent>
-          <TicketIllustration>
-            <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="40" cy="28" r="14" fill="rgba(255,255,255,0.35)" />
-              <circle cx="40" cy="28" r="9" fill="rgba(255,255,255,0.6)" />
-              <path d="M14 68c0-14.36 11.64-26 26-26h0c14.36 0 26 11.64 26 26" stroke="rgba(255,255,255,0.6)" strokeWidth="5" strokeLinecap="round" fill="none"/>
-              <circle cx="22" cy="34" r="7" fill="rgba(255,255,255,0.25)" />
-              <path d="M6 60c0-8.84 7.16-16 16-16" stroke="rgba(255,255,255,0.3)" strokeWidth="4" strokeLinecap="round" fill="none"/>
-              <circle cx="58" cy="34" r="7" fill="rgba(255,255,255,0.25)" />
-              <path d="M74 60c0-8.84-7.16-16-16-16" stroke="rgba(255,255,255,0.3)" strokeWidth="4" strokeLinecap="round" fill="none"/>
-            </svg>
-          </TicketIllustration>
-        </TicketCard>
+      {/* KPI Cards */}
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="show"
+      >
+        <KpiGrid>
+          {kpis.map((k, i) => (
+            <motion.div 
+              key={k.label} 
+              custom={i} 
+              variants={scaleBounce}
+              whileHover={{ scale: 1.03, y: -5 }}
+              transition={{ type: "spring", stiffness: 400 }}
+            >
+              <KpiCard $color={k.color}>
+                <KpiGlow $color={k.color} />
+                <KpiTop>
+                  <KpiIcon>{k.icon}</KpiIcon>
+                  <KpiBadge $color={k.color}>{k.label}</KpiBadge>
+                </KpiTop>
+                <KpiValue $color={k.color}>
+                  <AnimatedNumber value={k.value} suffix={k.suffix} />
+                </KpiValue>
+                <KpiSub>{k.sub}</KpiSub>
+                <KpiBar>
+                  <motion.div
+                    style={{ background: k.color, height: '100%', borderRadius: 4, originX: 0 }}
+                    initial={{ scaleX: 0 }}
+                    animate={{ scaleX: 1 }}
+                    transition={{ delay: 0.5 + i * 0.1, duration: 1, ease: "easeOut" }}
+                  />
+                </KpiBar>
+              </KpiCard>
+            </motion.div>
+          ))}
+        </KpiGrid>
+      </motion.div>
 
-        {/* Tushum */}
-        <TicketCard $bg1="#f7971e" $bg2="#ffd200">
-          <TicketNotch $side="left" />
-          <TicketNotch $side="right" />
-          <TicketDashes />
-          <TicketContent>
-            <TicketLabel>Jami tushum</TicketLabel>
-            <TicketValue>{formatSum(totalRevenue)} so'm</TicketValue>
-            <TicketSub>{students.filter(s => s.paid > 0).length} ta o'quvchi to'lagan</TicketSub>
-          </TicketContent>
-          <TicketIllustration>
-            <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect x="10" y="22" width="60" height="40" rx="6" fill="rgba(255,255,255,0.3)" />
-              <rect x="10" y="32" width="60" height="8" fill="rgba(255,255,255,0.25)" />
-              <rect x="18" y="48" width="20" height="6" rx="3" fill="rgba(255,255,255,0.5)" />
-              <rect x="44" y="48" width="12" height="6" rx="3" fill="rgba(255,255,255,0.4)" />
-              <circle cx="58" cy="20" r="12" fill="rgba(255,255,255,0.35)" />
-              <text x="54" y="25" fontSize="14" fontWeight="bold" fill="rgba(255,255,255,0.8)">$</text>
-            </svg>
-          </TicketIllustration>
-        </TicketCard>
+      {/* Charts Grid */}
+      <ChartsGrid>
+        {/* Area Chart */}
+        <motion.div
+          variants={slideInLeft}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, margin: "-100px" }}
+        >
+          <ChartCard>
+            <ChartHeader>
+              <ChartTitle>Haftalik tendentsiya</ChartTitle>
+            </ChartHeader>
+            <ResponsiveContainer width="100%" height={300}>
+              <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="colorTushum" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#00e0ff" stopOpacity={0.4}/>
+                    <stop offset="95%" stopColor="#00e0ff" stopOpacity={0}/>
+                  </linearGradient>
+                  <linearGradient id="colorChiqim" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#ff6b6b" stopOpacity={0.4}/>
+                    <stop offset="95%" stopColor="#ff6b6b" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#2d3748" />
+                <XAxis dataKey="kun" stroke="#8892b0" />
+                <YAxis stroke="#8892b0" tickFormatter={(value) => `${Math.round(value/1000000)}M`} />
+                <Tooltip {...tooltipStyle} formatter={(value) => [`${fmt(value)} so'm`, '']} />
+                <Area type="monotone" dataKey="tushum" stroke="#00e0ff" fillOpacity={1} fill="url(#colorTushum)" />
+                <Area type="monotone" dataKey="chiqim" stroke="#ff6b6b" fillOpacity={1} fill="url(#colorChiqim)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </ChartCard>
+        </motion.div>
 
-        {/* Chiqimlar */}
-        <TicketCard $bg1="#ff6b6b" $bg2="#c92a2a">
-          <TicketNotch $side="left" />
-          <TicketNotch $side="right" />
-          <TicketDashes />
-          <TicketContent>
-            <TicketLabel>Jami chiqim</TicketLabel>
-            <TicketValue>{formatSum(totalExpenses)} so'm</TicketValue>
-            <TicketSub>{expenses.length} ta chiqim</TicketSub>
-          </TicketContent>
-          <TicketIllustration>
-            <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="40" cy="40" r="26" fill="rgba(255,255,255,0.2)" />
-              <circle cx="40" cy="40" r="18" fill="rgba(255,255,255,0.25)" />
-              <path d="M30 40 L50 40 M40 30 L40 50" stroke="rgba(255,255,255,0.75)" strokeWidth="5" strokeLinecap="round" fill="none"/>
-            </svg>
-          </TicketIllustration>
-        </TicketCard>
+        {/* Bar Chart */}
+        <motion.div
+          variants={slideInRight}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, margin: "-100px" }}
+        >
+          <ChartCard>
+            <ChartHeader>
+              <ChartTitle>Sof foyda</ChartTitle>
+            </ChartHeader>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#2d3748" />
+                <XAxis dataKey="kun" stroke="#8892b0" />
+                <YAxis stroke="#8892b0" tickFormatter={(value) => `${Math.round(value/1000000)}M`} />
+                <Tooltip {...tooltipStyle} formatter={(value) => [`${fmt(value)} so'm`, '']} />
+                <Bar dataKey="foyda" fill="#10b981" radius={[8, 8, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </ChartCard>
+        </motion.div>
 
-        {/* Sof foyda */}
-        <TicketCard $bg1="#11998e" $bg2="#38ef7d">
-          <TicketNotch $side="left" />
-          <TicketNotch $side="right" />
-          <TicketDashes />
-          <TicketContent>
-            <TicketLabel>Sof foyda</TicketLabel>
-            <TicketValue>{formatSum(netProfit)} so'm</TicketValue>
-            <TicketSub>Tushum - Chiqim</TicketSub>
-          </TicketContent>
-          <TicketIllustration>
-            <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="40" cy="40" r="26" fill="rgba(255,255,255,0.2)" />
-              <circle cx="40" cy="40" r="18" fill="rgba(255,255,255,0.25)" />
-              <path d="M28 40 L36 48 L52 32" stroke="rgba(255,255,255,0.85)" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-            </svg>
-          </TicketIllustration>
-        </TicketCard>
-      </TicketRow>
+        {/* Pie Charts */}
+        <motion.div
+          variants={itemVariants}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, margin: "-100px" }}
+        >
+          <ChartCard>
+            <ChartHeader>
+              <ChartTitle>Guruhlar bo'yicha</ChartTitle>
+            </ChartHeader>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={groupPie}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  outerRadius={100}
+                  fill="#8884d8"
+                  dataKey="value"
+                  animationBegin={0}
+                  animationDuration={1500}
+                >
+                  {groupPie.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip {...tooltipStyle} />
+              </PieChart>
+            </ResponsiveContainer>
+          </ChartCard>
+        </motion.div>
 
-      <ChartsRow>
-        <ChartCard>
-          <ChartTitle>Tushum vs Chiqim</ChartTitle>
-          <ResponsiveContainer width="100%" height={240}>
-            <BarChart data={chartData} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#1e2235" />
-              <XAxis dataKey="kun" stroke="#4a5568" tick={{ fill: '#8892b0', fontSize: 12 }} />
-              <YAxis stroke="#4a5568" tick={{ fill: '#8892b0', fontSize: 11 }} tickFormatter={(v) => v >= 1000000 ? `${(v/1000000).toFixed(1)}M` : v >= 1000 ? `${(v/1000).toFixed(0)}K` : v} />
-              <Tooltip
-                contentStyle={{ background: '#1a1d2e', border: '1px solid #2d3748', borderRadius: 8 }}
-                formatter={(v) => [`${v.toLocaleString()} so'm`]}
-              />
-              <Legend />
-              <Bar dataKey="tushum" fill="#10b981" radius={[4, 4, 0, 0]} name="Tushum" />
-              <Bar dataKey="chiqim" fill="#ff6b6b" radius={[4, 4, 0, 0]} name="Chiqim" />
-            </BarChart>
-          </ResponsiveContainer>
-        </ChartCard>
+        <motion.div
+          variants={itemVariants}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, margin: "-100px" }}
+        >
+          <ChartCard>
+            <ChartHeader>
+              <ChartTitle>To'lov holati</ChartTitle>
+            </ChartHeader>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={payPie}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  outerRadius={100}
+                  fill="#8884d8"
+                  dataKey="value"
+                  animationBegin={0}
+                  animationDuration={1500}
+                >
+                  {payPie.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip {...tooltipStyle} />
+              </PieChart>
+            </ResponsiveContainer>
+          </ChartCard>
+        </motion.div>
 
-        <ChartCard>
-          <ChartTitle>Sof foyda dinamikasi</ChartTitle>
-          <ResponsiveContainer width="100%" height={240}>
-            <LineChart data={chartData} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#1e2235" />
-              <XAxis dataKey="kun" stroke="#4a5568" tick={{ fill: '#8892b0', fontSize: 12 }} />
-              <YAxis stroke="#4a5568" tick={{ fill: '#8892b0', fontSize: 11 }} tickFormatter={(v) => v >= 1000000 ? `${(v/1000000).toFixed(1)}M` : v >= 1000 ? `${(v/1000).toFixed(0)}K` : v} />
-              <Tooltip
-                contentStyle={{ background: '#1a1d2e', border: '1px solid #2d3748', borderRadius: 8 }}
-                formatter={(v) => [`${v.toLocaleString()} so'm`, 'Sof foyda']}
-              />
-              <Line type="monotone" dataKey="foyda" stroke="#00e0ff" strokeWidth={3} dot={{ fill: '#00e0ff', r: 5 }} name="Sof foyda" />
-            </LineChart>
-          </ResponsiveContainer>
-        </ChartCard>
-      </ChartsRow>
-
-      {/* Pie Charts */}
-      <PieRow>
-        <ChartCard>
-          <ChartTitle>Guruhlar bo'yicha</ChartTitle>
-          <ResponsiveContainer width="100%" height={220}>
-            <PieChart>
-              <Pie
-                data={groupPieData}
-                cx="50%"
-                cy="50%"
-                outerRadius={75}
-                dataKey="value"
-              >
-                {groupPieData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
-              </Pie>
-              <Legend
-                formatter={(val) => <span style={{ color: '#e2e8f0', fontSize: 12 }}>{val}</span>}
-              />
-              <Tooltip
-                contentStyle={{ background: '#1a1d2e', border: '1px solid #2d3748', borderRadius: 8 }}
-                labelStyle={{ color: '#e2e8f0' }}
-                itemStyle={{ color: '#e2e8f0' }}
-                formatter={(v, name) => [`${v} ta`, name]}
-              />
-            </PieChart>
-          </ResponsiveContainer>
-        </ChartCard>
-
-        <ChartCard>
-          <ChartTitle>Medspr. holati</ChartTitle>
-          <ResponsiveContainer width="100%" height={220}>
-            <PieChart>
-              <Pie data={medPieData} cx="50%" cy="50%" outerRadius={75} dataKey="value">
-                <Cell fill="#10b981" />
-                <Cell fill="#ff6b6b" />
-              </Pie>
-              <Legend formatter={(val) => <span style={{ color: '#e2e8f0', fontSize: 13 }}>{val}</span>} />
-              <Tooltip
-                contentStyle={{ background: '#1a1d2e', border: '1px solid #2d3748', borderRadius: 8 }}
-                labelStyle={{ color: '#e2e8f0' }}
-                itemStyle={{ color: '#e2e8f0' }}
-                formatter={(v, name) => [`${v} ta`, name]}
-              />
-            </PieChart>
-          </ResponsiveContainer>
-        </ChartCard>
-
-        <ChartCard>
-          <ChartTitle>To'lov holati</ChartTitle>
-          <ResponsiveContainer width="100%" height={220}>
-            <PieChart>
-              <Pie data={payPieData} cx="50%" cy="50%" outerRadius={75} dataKey="value">
-                <Cell fill="#10b981" />
-                <Cell fill="#f59e0b" />
-                <Cell fill="#ff6b6b" />
-              </Pie>
-              <Legend formatter={(val) => <span style={{ color: '#e2e8f0', fontSize: 13 }}>{val}</span>} />
-              <Tooltip
-                contentStyle={{ background: '#1a1d2e', border: '1px solid #2d3748', borderRadius: 8 }}
-                labelStyle={{ color: '#e2e8f0' }}
-                itemStyle={{ color: '#e2e8f0' }}
-                formatter={(v, name) => [`${v} ta`, name]}
-              />
-            </PieChart>
-          </ResponsiveContainer>
-        </ChartCard>
-      </PieRow>
+        <motion.div
+          variants={itemVariants}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, margin: "-100px" }}
+        >
+          <ChartCard>
+            <ChartHeader>
+              <ChartTitle>Tibbiy xujjat</ChartTitle>
+            </ChartHeader>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={medPie}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  outerRadius={100}
+                  fill="#8884d8"
+                  dataKey="value"
+                  animationBegin={0}
+                  animationDuration={1500}
+                >
+                  {medPie.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip {...tooltipStyle} />
+              </PieChart>
+            </ResponsiveContainer>
+          </ChartCard>
+        </motion.div>
+      </ChartsGrid>
     </Wrapper>
   )
 }
 
-const Wrapper = styled.div`display: flex; flex-direction: column; gap: 24px;`
+const Wrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 0 0 24px 0;
+`
 
 const PageHeader = styled.div`
-  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
-  h2 { font-size: 1.4rem; font-weight: 700; color: #e2e8f0; }
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
 `
 
-const PeriodTabs = styled.div`
-  display: flex; background: #13161f; border: 1px solid #2d3748; border-radius: 8px; overflow: hidden;
+const TitleBlock = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 `
 
-const PeriodTab = styled.button`
-  padding: 7px 16px; font-size: 0.85rem; font-weight: 500; cursor: pointer; border: none;
-  background: ${({ $active }) => $active ? '#00e0ff18' : 'transparent'};
-  color: ${({ $active }) => $active ? '#00e0ff' : '#8892b0'};
-  border-right: 1px solid #2d3748;
-  &:last-child { border-right: none; }
-  &:hover { color: #00e0ff; }
+const PageTitle = styled.h2`
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #e2e8f0;
+  margin: 0;
+  background: linear-gradient(135deg, #00e0ff 0%, #7c3aed 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 `
 
-const ChartsRow = styled.div`
-  display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
-  @media (max-width: 768px) { grid-template-columns: 1fr; }
+const PageSub = styled.p`
+  font-size: 0.95rem;
+  color: #8892b0;
+  margin: 0;
 `
 
-const PieRow = styled.div`
-  display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
-  @media (max-width: 900px) { grid-template-columns: 1fr; }
+const LiveBadge = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: #10b98115;
+  border: 1px solid #10b98144;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #10b981;
+`
+
+const LiveDot = styled.div`
+  width: 8px;
+  height: 8px;
+  background: #10b981;
+  border-radius: 50%;
+  animation: ${pulse} 2s ease-in-out infinite;
+`
+
+const KpiGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+`
+
+const KpiCard = styled.div`
+  position: relative;
+  background: #13161f;
+  border: 1px solid #1e2235;
+  border-radius: 16px;
+  padding: 20px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  &:hover {
+    border-color: ${props => props.$color}44;
+    box-shadow: 0 0 30px ${props => props.$color}22;
+  }
+`
+
+const KpiGlow = styled.div`
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, ${props => props.$color}15 0%, transparent 70%);
+  pointer-events: none;
+`
+
+const KpiTop = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+`
+
+const KpiIcon = styled.div`
+  font-size: 2rem;
+`
+
+const KpiBadge = styled.div`
+  padding: 4px 12px;
+  background: ${props => props.$color}15;
+  border: 1px solid ${props => props.$color}44;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: ${props => props.$color};
+`
+
+const KpiValue = styled.div`
+  font-size: 2rem;
+  font-weight: 800;
+  color: ${props => props.$color};
+  margin-bottom: 4px;
+  line-height: 1.2;
+`
+
+const KpiSub = styled.div`
+  font-size: 0.85rem;
+  color: #8892b0;
+  margin-bottom: 16px;
+`
+
+const KpiBar = styled.div`
+  height: 4px;
+  background: #1e2235;
+  border-radius: 4px;
+  overflow: hidden;
+`
+
+const ChartsGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 20px;
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
 `
 
 const ChartCard = styled.div`
-  background: #13161f; border: 1px solid #1e2235; border-radius: 12px; padding: 20px;
+  background: #13161f;
+  border: 1px solid #1e2235;
+  border-radius: 16px;
+  padding: 24px;
+  transition: all 0.3s ease;
+  &:hover {
+    border-color: #2d3748;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+  }
 `
 
-const ChartTitle = styled.div`
-  font-size: 0.95rem; font-weight: 600; color: #e2e8f0; margin-bottom: 16px;
+const ChartHeader = styled.div`
+  margin-bottom: 20px;
+`
+
+const ChartTitle = styled.h3`
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #e2e8f0;
+  margin: 0;
 `

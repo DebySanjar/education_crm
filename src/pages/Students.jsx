@@ -412,19 +412,35 @@ const RefreshBtn = styled.button`
   width: 36px; height: 36px; border-radius: 8px; cursor: pointer; font-size: 1.1rem;
   &:hover { color: #00e0ff; border-color: #00e0ff44; }
 `
-const GroupTabs = styled.div`display: flex; gap: 6px; flex-wrap: wrap;`
+const GroupTabs = styled.div`display: flex; gap: 10px; flex-wrap: wrap;`
 const GroupTab = styled.button`
-  display: flex; align-items: center; gap: 6px;
-  padding: 7px 14px; border-radius: 20px; font-size: 0.82rem; font-weight: 500; cursor: pointer;
-  border: 1px solid ${({ $active }) => $active ? '#00e0ff' : '#2d3748'};
-  background: ${({ $active }) => $active ? '#00e0ff18' : '#13161f'};
-  color: ${({ $active }) => $active ? '#00e0ff' : '#8892b0'};
-  transition: all 0.15s;
-  &:hover { border-color: #00e0ff; color: #00e0ff; }
+  display: flex; align-items: center; gap: 8px;
+  padding: 9px 18px; border-radius: 10px;
+  font-size: 0.85rem; font-weight: 700; cursor: pointer;
+  white-space: nowrap; border: none;
+  background: ${({ $active }) => $active ? '#00e0ff' : '#1a1d2e'};
+  color: ${({ $active }) => $active ? '#000' : '#8892b0'};
+  box-shadow: ${({ $active }) => $active
+    ? '0 1px 0 #0098b0, 0 2px 0 #007a8f, 0 3px 6px rgba(0,0,0,0.4)'
+    : '0 1px 0 #111318, 0 2px 0 #0d0f15, 0 3px 6px rgba(0,0,0,0.3)'};
+  transform: ${({ $active }) => $active ? 'translateY(0)' : 'translateY(-2px)'};
+  transition: all 0.12s ease;
+
+  &:hover {
+    background: ${({ $active }) => $active ? '#00e0ff' : '#242838'};
+    color: ${({ $active }) => $active ? '#000' : '#00e0ff'};
+    transform: translateY(-2px);
+    box-shadow: 0 1px 0 #0098b0, 0 2px 0 #007a8f, 0 4px 10px rgba(0,224,255,0.2);
+  }
+  &:active {
+    transform: translateY(1px);
+    box-shadow: 0 0px 0 #0098b0, 0 1px 0 #007a8f, 0 1px 4px rgba(0,0,0,0.3);
+  }
+
   span {
-    background: ${({ $active }) => $active ? '#00e0ff' : '#2d3748'};
-    color: ${({ $active }) => $active ? '#000' : '#8892b0'};
-    padding: 1px 7px; border-radius: 10px; font-size: 0.75rem; font-weight: 700;
+    background: ${({ $active }) => $active ? 'rgba(0,0,0,0.2)' : '#2d3748'};
+    color: ${({ $active }) => $active ? '#000' : '#94a3b8'};
+    padding: 2px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700;
   }
 `
 const SearchBox = styled.div`
