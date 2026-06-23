@@ -51,12 +51,12 @@ export default function OnboardingTour() {
           },
           {
             target: '#dashboard-kpis',
-            content: 'Bu yerda jami o\'quvchilar, tushum va xarajatlarni real vaqt rejimida ko\'rishingiz mumkin.',
-            title: '📊 Asosiy ko\'rsatkichlar'
+            content: 'Bu yerda jami oquvchilar, tushum va xarajatlarni real vaqt rejimida korishingiz mumkin.',
+            title: '📊 Asosiy korsatkichlar'
           },
           {
             target: '#sidebar-nav',
-            content: 'Bu yerda barcha sahifalarga o\'tishingiz mumkin: O\'quvchilar, Guruhlar, To\'lovlar va boshqalar.',
+            content: 'Bu yerda barcha sahifalarga otingiz mumkin: Oquvchilar, Guruhlar, Tolovlar va boshqalar.',
             title: '🧭 Navigatsiya paneli'
           }
         ];
@@ -64,18 +64,18 @@ export default function OnboardingTour() {
         return [
           {
             target: '#students-header',
-            content: 'Bu yerda o\'quvchilar ro\'yxatini boshqarasiz.',
-            title: '👥 O\'quvchilar',
+            content: 'Bu yerda oquvchilar royxatini boshqarasiz.',
+            title: '👥 Oquvchilar',
             disableBeacon: true
           },
           {
             target: '#add-student-btn',
-            content: 'Yangi o\'quvchi qo\'shish uchun shu tugmani bosing.',
-            title: '➕ Yangi o\'quvchi'
+            content: 'Yangi oquvchi qoshish uchun shu tugmani bosing.',
+            title: '➕ Yangi oquvchi'
           },
           {
             target: '#students-groups',
-            content: 'O\'quvchilarni guruhlar bo\'yicha filtrlashingiz mumkin.',
+            content: 'Oquvchilarni guruhlar boyicha filtrlashingiz mumkin.',
             title: '🏷️ Guruhlar'
           }
         ];
@@ -89,7 +89,7 @@ export default function OnboardingTour() {
           },
           {
             target: '#add-group-btn',
-            content: 'Yangi guruh qo\'shishingiz mumkin.',
+            content: 'Yangi guruh qoshishingiz mumkin.',
             title: '➕ Yangi guruh'
           }
         ];
@@ -97,14 +97,14 @@ export default function OnboardingTour() {
         return [
           {
             target: '#payments-header',
-            content: 'Bu yerda to\'lovlarni kuzatasiz.',
-            title: '💰 To\'lovlar',
+            content: 'Bu yerda tolovlarni kuzatasiz.',
+            title: '💰 Tolovlar',
             disableBeacon: true
           },
           {
             target: '#add-payment-btn',
-            content: 'Yangi to\'lov qo\'shishingiz mumkin.',
-            title: '➕ To\'lov qo\'shish'
+            content: 'Yangi tolov qoshishingiz mumkin.',
+            title: '➕ Tolov qoshish'
           }
         ];
       case '/expenses':
@@ -117,21 +117,21 @@ export default function OnboardingTour() {
           },
           {
             target: '#add-expense-btn',
-            content: 'Yangi xarajat qo\'shishingiz mumkin.',
-            title: '➕ Xarajat qo\'shish'
+            content: 'Yangi xarajat qoshishingiz mumkin.',
+            title: '➕ Xarajat qoshish'
           }
         ];
       case '/statistics':
         return [
           {
             target: '#stats-header',
-            content: 'Bu yerda tushum, xarajat va boshqa statistiklarni ko\'rishingiz mumkin.',
+            content: 'Bu yerda tushum, xarajat va boshqa statistiklarni korishingiz mumkin.',
             title: '📈 Statistika',
             disableBeacon: true
           },
           {
             target: '#stats-charts',
-            content: 'Grafiklar yordamida ma\'lumotlarni vizual ko\'ring.',
+            content: 'Grafiklar yordamida malumotlarni vizual koring.',
             title: '📉 Grafiklar'
           }
         ];
@@ -206,7 +206,7 @@ export default function OnboardingTour() {
           >
             <TooltipContent>
               {step.title && <TooltipTitle>{step.title}</TooltipTitle>}
-              <div style={{ lineHeight: '1.6', marginBottom: '20px }}>
+              <div style={{ lineHeight: '1.6', marginBottom: '20px' }}>
                 {step.content}
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -235,7 +235,7 @@ export default function OnboardingTour() {
                     cursor: 'pointer',
                     fontWeight: '600'
                   }}>
-                    O'tkazib yuborish
+                    Otkazib yuborish
                   </button>
                 )}
                 </div>
