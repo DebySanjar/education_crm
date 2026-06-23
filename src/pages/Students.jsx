@@ -8,7 +8,7 @@ import { saveAs } from 'file-saver'
 import { generateContract } from '../utils/generateContract'
 import ExcelTicketBtn from '../components/ExcelTicketBtn'
 import {
-  MdAdd, MdEdit, MdDelete, MdDownload, MdSearch, MdClose, MdPerson, MdDescription, MdGroup,
+  MdAdd, MdEdit, MdDelete, MdSearch, MdClose, MdPerson, MdDescription,
 } from 'react-icons/md'
 
 const MED_STATUSES = ['Topshirilgan', 'Topshirilmagan']
@@ -20,20 +20,17 @@ const emptyForm = {
 }
 
 export default function Students() {
-  const { students, addStudent, updateStudent, deleteStudent, groups, addGroup, deleteGroup, loading } = useData()
+  const { students, addStudent, updateStudent, deleteStudent, groups, loading } = useData()
   const { canDelete, isSuperAdmin } = useAuth()
   const toast = useToast()
   const [search, setSearch] = useState('')
   const [selectedGroup, setSelectedGroup] = useState('Barchasi')
   const [showModal, setShowModal] = useState(false)
-  const [showGroupModal, setShowGroupModal] = useState(false)
   const [editId, setEditId] = useState(null)
   const [form, setForm] = useState(emptyForm)
   const [deleteConfirm, setDeleteConfirm] = useState(null)
   const [contractDialog, setContractDialog] = useState(null)
   const [errors, setErrors] = useState({})
-  const [newGroupName, setNewGroupName] = useState('')
-  const [groupError, setGroupError] = useState('')
 
   const filtered = students.filter(s => {
     const matchSearch = s.fullName.toLowerCase().includes(search.toLowerCase()) || s.phone.includes(search)
@@ -178,39 +175,6 @@ export default function Students() {
 
   const handleDelete = (id) => { deleteStudent(id); setDeleteConfirm(null) }
 
-  const handleAddGroup = async () => {
-    setGroupError('')
-    if (!newGroupName.trim()) {
-      setGroupError('Guruh nomini kiriting')
-      return
-    }
-    
-    // Check if group already exists
-    if (groups.some(g => g.name.toLowerCase() === newGroupName.trim().toLowerCase())) {
-      setGroupError('Bu guruh allaqachon mavjud')
-      return
-    }
-    
-    const result = await addGroup({ name: newGroupName.trim() })
-    if (result.success) {
-      setNewGroupName('')
-      setShowGroupModal(false)
-    } else {
-      setGroupError(result.error)
-    }
-  }
-
-  const handleDeleteGroup = async (groupId, groupName) => {
-    const hasStudents = students.some(s => s.group === groupName)
-    if (hasStudents) {
-      toast.warning(`"${groupName}" guruhida o'quvchilar bor. Avval o'quvchilarni boshqa guruhga o'tkazing.`)
-      return
-    }
-    if (window.confirm(`"${groupName}" guruhini o'chirmoqchimisiz?`)) {
-      await deleteGroup(groupId)
-    }
-  }
-
   const handleDownloadContract = async (student) => {
     try {
       await generateContract(student)
@@ -277,53 +241,30 @@ export default function Students() {
   return (
     <Wrapper>
       <PageHeader>
-        <h2>O'quvchilar</h2>
+        <h2>O'quvchilar ro'yxati</h2>
         <HeaderActions>
           <ExcelTicketBtn onClick={exportExcel} label="Excel" subLabel="O'quvchilar" />
-          <AddBtn onClick={() => setShowGroupModal(true)}><MdGroup /> Guruh qo'shish</AddBtn>
           <AddBtn onClick={openAdd}><MdAdd /> O'quvchi qo'shish</AddBtn>
         </HeaderActions>
       </PageHeader>
 
-      {/* Search */}
-      <SearchBox>
-        <MdSearch />
-        <input placeholder="Ism yoki telefon bo'yicha qidirish..." value={search} onChange={e => setSearch(e.target.value)} />
-      </SearchBox>
-
-      {/* Groups Section */}
-      <GroupsSection>
-        <SectionTitle>Guruhlar</SectionTitle>
-        <GroupChips>
-          <GroupChip 
-            $active={selectedGroup === 'Barchasi'} 
-            onClick={() => setSelectedGroup('Barchasi')}
-          >
-            <span className="name">Barchasi</span>
-            <span className="count">{students.length}</span>
-          </GroupChip>
-          {groups.map(group => (
-            <GroupChip 
-              key={group.id}
-              $active={selectedGroup === group.name} 
-              onClick={() => setSelectedGroup(group.name)}
-            >
-              <span className="name">{group.name}</span>
-              <span className="count">{getGroupCount(group.name)}</span>
-              {isSuperAdmin() && (
-                <DeleteGroupBtn 
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    handleDeleteGroup(group.id, group.name)
-                  }}
-                >
-                  <MdClose />
-                </DeleteGroupBtn>
-              )}
-            </GroupChip>
+      {/* Search + group filter */}
+      <FiltersRow>
+        <SearchBox>
+          <MdSearch />
+          <input placeholder="Ism yoki telefon bo'yicha qidirish..." value={search} onChange={e => setSearch(e.target.value)} />
+        </SearchBox>
+        <GroupTabs>
+          <GroupTab $active={selectedGroup === 'Barchasi'} onClick={() => setSelectedGroup('Barchasi')}>
+            Barchasi <span>{students.length}</span>
+          </GroupTab>
+          {groups.map(g => (
+            <GroupTab key={g.id} $active={selectedGroup === g.name} onClick={() => setSelectedGroup(g.name)}>
+              {g.name} <span>{students.filter(s => s.group === g.name).length}</span>
+            </GroupTab>
           ))}
-        </GroupChips>
-      </GroupsSection>
+        </GroupTabs>
+      </FiltersRow>
 
       <TableWrapper>
         <Table>
@@ -489,36 +430,6 @@ export default function Students() {
               <DeleteBtn onClick={() => handleDelete(deleteConfirm)}>O'chirish</DeleteBtn>
             </ConfirmBtns>
           </ConfirmModal>
-        </ModalOverlay>
-      )}
-
-      {/* Add Group Modal */}
-      {showGroupModal && (
-        <ModalOverlay onClick={() => setShowGroupModal(false)}>
-          <SmallModal onClick={e => e.stopPropagation()}>
-            <ModalHeader>
-              <h3>Yangi guruh qo'shish</h3>
-              <CloseBtn onClick={() => setShowGroupModal(false)}><MdClose /></CloseBtn>
-            </ModalHeader>
-            <FormBody>
-              <FormGroup>
-                <label>Guruh nomi *</label>
-                <input
-                  required
-                  value={newGroupName}
-                  onChange={e => setNewGroupName(e.target.value)}
-                  placeholder="Masalan: A guruh, B guruh..."
-                  autoFocus
-                  onKeyPress={e => e.key === 'Enter' && handleAddGroup()}
-                />
-                {groupError && <ErrorText>{groupError}</ErrorText>}
-              </FormGroup>
-            </FormBody>
-            <ModalFooter>
-              <CancelBtn onClick={() => setShowGroupModal(false)}>Bekor qilish</CancelBtn>
-              <SaveBtn onClick={handleAddGroup}>Qo'shish</SaveBtn>
-            </ModalFooter>
-          </SmallModal>
         </ModalOverlay>
       )}
 

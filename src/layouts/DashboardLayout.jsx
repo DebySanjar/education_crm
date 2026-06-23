@@ -1,15 +1,22 @@
 import React, { useState } from 'react'
-import { Outlet, NavLink, useNavigate } from 'react-router-dom'
+import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import styled from 'styled-components'
 import { useAuth } from '../context/AuthContext'
 import {
   MdDashboard, MdPeople, MdChecklist, MdPayment, MdBarChart, MdSettings,
   MdLogout, MdMenu, MdDirectionsCar, MdChevronLeft, MdClose, MdMoneyOff,
+  MdExpandMore, MdGroup,
 } from 'react-icons/md'
 
 const navItems = [
   { to: '/', icon: <MdDashboard />, label: 'Bosh sahifa' },
-  { to: '/students', icon: <MdPeople />, label: "O'quvchilar" },
+  {
+    icon: <MdPeople />, label: "O'quvchilar", expandable: true,
+    children: [
+      { to: '/students', icon: <MdPeople />, label: "O'quvchilar ro'yxati" },
+      { to: '/groups', icon: <MdGroup />, label: 'Guruhlar' },
+    ]
+  },
   { to: '/attendance', icon: <MdChecklist />, label: 'Davomat' },
   { to: '/payments', icon: <MdPayment />, label: "To'lovlar" },
   { to: '/expenses', icon: <MdMoneyOff />, label: 'Chiqimlar' },
@@ -19,54 +26,110 @@ const navItems = [
 export default function DashboardLayout() {
   const { logout } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [showLogoutDialog, setShowLogoutDialog] = useState(false)
+  const [studentsOpen, setStudentsOpen] = useState(
+    location.pathname === '/students' || location.pathname === '/groups'
+  )
 
   const handleLogout = () => {
     logout()
     navigate('/login')
   }
 
+  const isStudentsActive = location.pathname === '/students' || location.pathname === '/groups'
+
   return (
     <LayoutWrapper>
-      {/* Mobile overlay */}
       {mobileOpen && <Overlay onClick={() => setMobileOpen(false)} />}
 
       <Sidebar $collapsed={collapsed} $mobileOpen={mobileOpen}>
-        {/* Logo + collapse button in header */}
         <SidebarHeader $collapsed={collapsed}>
           {!collapsed && <LogoIcon><MdDirectionsCar /></LogoIcon>}
-          {!collapsed && <LogoText>EXPRESS <span>TEST</span></LogoText>}
+          {!collapsed && <LogoText>Admin<span>Panel</span></LogoText>}
           {collapsed && <LogoIconCenter><MdDirectionsCar /></LogoIconCenter>}
-          {/* Desktop collapse btn — top-right of header */}
           {!collapsed && (
-            <CollapseBtn
-              onClick={() => setCollapsed(c => !c)}
-              title="Yopish"
-            >
+            <CollapseBtn onClick={() => setCollapsed(c => !c)} title="Yopish">
               <MdChevronLeft />
             </CollapseBtn>
           )}
-          {/* Mobile close btn */}
           <MobileCloseBtn onClick={() => setMobileOpen(false)}>
             <MdClose />
           </MobileCloseBtn>
         </SidebarHeader>
 
-        {/* Nav items */}
         <Nav>
-          {/* Collapsed holatda kengaytirish tugmasi nav tepasida */}
           {collapsed && (
             <ExpandBtn onClick={() => setCollapsed(false)} title="Kengaytirish">
               <MdChevronLeft style={{ transform: 'rotate(180deg)' }} />
             </ExpandBtn>
           )}
-          {navItems.map(item => (
+
+          {/* Bosh sahifa */}
+          <NavItem
+            to="/"
+            end
+            $collapsed={collapsed}
+            onClick={() => setMobileOpen(false)}
+            title={collapsed ? 'Bosh sahifa' : ''}
+          >
+            <span className="icon"><MdDashboard /></span>
+            {!collapsed && <span className="label">Bosh sahifa</span>}
+          </NavItem>
+
+          {/* O'quvchilar — expandable */}
+          {collapsed ? (
+            <>
+              <NavItem to="/students" $collapsed={collapsed} onClick={() => setMobileOpen(false)} title="O'quvchilar ro'yxati">
+                <span className="icon"><MdPeople /></span>
+              </NavItem>
+              <NavItem to="/groups" $collapsed={collapsed} onClick={() => setMobileOpen(false)} title="Guruhlar">
+                <span className="icon"><MdGroup /></span>
+              </NavItem>
+            </>
+          ) : (
+            <>
+              <ParentNavItem
+                $active={isStudentsActive}
+                onClick={() => setStudentsOpen(o => !o)}
+              >
+                <span className="icon"><MdPeople /></span>
+                <span className="label">O'quvchilar</span>
+                <ChevronIcon $open={studentsOpen}><MdExpandMore /></ChevronIcon>
+              </ParentNavItem>
+              {studentsOpen && (
+                <SubNav>
+                  <SubNavItem
+                    to="/students"
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    <span className="dot" />
+                    <span>Ro'yxat</span>
+                  </SubNavItem>
+                  <SubNavItem
+                    to="/groups"
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    <span className="dot" />
+                    <span>Guruhlar</span>
+                  </SubNavItem>
+                </SubNav>
+              )}
+            </>
+          )}
+
+          {/* Qolgan nav itemlar */}
+          {[
+            { to: '/attendance', icon: <MdChecklist />, label: 'Davomat' },
+            { to: '/payments', icon: <MdPayment />, label: "To'lovlar" },
+            { to: '/expenses', icon: <MdMoneyOff />, label: 'Chiqimlar' },
+            { to: '/statistics', icon: <MdBarChart />, label: 'Statistika' },
+          ].map(item => (
             <NavItem
               key={item.to}
               to={item.to}
-              end={item.to === '/'}
               $collapsed={collapsed}
               onClick={() => setMobileOpen(false)}
               title={collapsed ? item.label : ''}
@@ -77,7 +140,6 @@ export default function DashboardLayout() {
           ))}
         </Nav>
 
-        {/* Settings */}
         <NavItem
           to="/settings"
           $collapsed={collapsed}
@@ -89,7 +151,6 @@ export default function DashboardLayout() {
           {!collapsed && <span className="label">Sozlamalar</span>}
         </NavItem>
 
-        {/* Logout */}
         <LogoutBtn onClick={() => setShowLogoutDialog(true)} $collapsed={collapsed} title={collapsed ? 'Chiqish' : ''}>
           <MdLogout />
           {!collapsed && <span>Chiqish</span>}
@@ -97,20 +158,17 @@ export default function DashboardLayout() {
       </Sidebar>
 
       <Main $collapsed={collapsed}>
-        {/* TopBar faqat mobilda hamburger uchun, desktop da yo'q */}
         <MobileTopBar>
           <MobileMenuBtn onClick={() => setMobileOpen(o => !o)}>
             <MdMenu />
           </MobileMenuBtn>
           <AdminBadge>Admin</AdminBadge>
         </MobileTopBar>
-
         <Content>
           <Outlet />
         </Content>
       </Main>
 
-      {/* Logout confirm dialog */}
       {showLogoutDialog && (
         <DialogOverlay onClick={() => setShowLogoutDialog(false)}>
           <Dialog onClick={e => e.stopPropagation()}>
@@ -214,6 +272,84 @@ const Nav = styled.nav`
   display: flex;
   flex-direction: column;
   gap: 2px;
+`
+
+const ParentNavItem = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  color: ${({ $active }) => $active ? '#00e0ff' : '#8892b0'};
+  background: ${({ $active }) => $active ? 'rgba(0,224,255,0.09)' : 'none'};
+  border: none;
+  border-left: 3px solid ${({ $active }) => $active ? '#00e0ff' : 'transparent'};
+  text-align: left;
+  font-size: 0.93rem;
+  font-weight: 500;
+  cursor: pointer;
+  width: 100%;
+  white-space: nowrap;
+  transition: all 0.18s;
+
+  .icon { font-size: 1.25rem; flex-shrink: 0; }
+  .label { flex: 1; }
+
+  &:hover {
+    color: #00e0ff;
+    background: rgba(0,224,255,0.06);
+  }
+`
+
+const ChevronIcon = styled.span`
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  transition: transform 0.2s;
+  transform: ${({ $open }) => $open ? 'rotate(180deg)' : 'rotate(0deg)'};
+  color: inherit;
+`
+
+const SubNav = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  background: rgba(0,0,0,0.15);
+  border-left: 2px solid #1e2235;
+  margin-left: 20px;
+`
+
+const SubNavItem = styled(NavLink)`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 16px;
+  color: #8892b0;
+  text-decoration: none;
+  font-size: 0.88rem;
+  font-weight: 500;
+  transition: all 0.18s;
+  white-space: nowrap;
+
+  .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    flex-shrink: 0;
+    opacity: 0.5;
+  }
+
+  &:hover {
+    color: #00e0ff;
+    background: rgba(0,224,255,0.06);
+    .dot { opacity: 1; }
+  }
+
+  &.active {
+    color: #00e0ff;
+    background: rgba(0,224,255,0.09);
+    .dot { opacity: 1; }
+  }
 `
 
 const NavItem = styled(NavLink)`

@@ -12,6 +12,7 @@ import {
   addExpense as addExpenseFS,
   updateExpense as updateExpenseFS,
   addGroup as addGroupFS,
+  updateGroup as updateGroupFS,
   deleteGroup as deleteGroupFS,
   markAttendance as markAttendanceFS,
   saveAttendanceForDate as saveAttendanceForDateFS,
@@ -185,6 +186,16 @@ export function DataProvider({ children }) {
     return result
   }
 
+  const updateGroup = async (id, data) => {
+    const result = await updateGroupFS(id, data)
+    if (result.success) {
+      toast.success("Guruh yangilandi.")
+    } else {
+      toast.error("Guruh yangilanmadi.")
+    }
+    return result
+  }
+
   const deleteGroup = async (id) => {
     const result = await deleteGroupFS(id)
     if (result.success) {
@@ -222,6 +233,7 @@ export function DataProvider({ children }) {
       updateExpense,
       groups,
       addGroup,
+      updateGroup,
       deleteGroup,
       clearAllData,
       loading,

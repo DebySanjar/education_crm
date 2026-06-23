@@ -4,6 +4,7 @@ import LoginPage from './pages/LoginPage'
 import DashboardLayout from './layouts/DashboardLayout'
 import Dashboard from './pages/Dashboard'
 import Students from './pages/Students'
+import Groups from './pages/Groups'
 import Attendance from './pages/Attendance'
 import Payments from './pages/Payments'
 import Expenses from './pages/Expenses'
@@ -32,6 +33,7 @@ function AppRoutes() {
       >
         <Route index element={<Dashboard />} />
         <Route path="students" element={<Students />} />
+        <Route path="groups" element={<Groups />} />
         <Route path="attendance" element={<Attendance />} />
         <Route path="payments" element={<Payments />} />
         <Route path="expenses" element={<Expenses />} />

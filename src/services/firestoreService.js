@@ -233,6 +233,17 @@ export const addGroup = async (groupData) => {
   }
 }
 
+export const updateGroup = async (id, data) => {
+  try {
+    await updateDoc(doc(db, COLLECTIONS.GROUPS, id), {
+      ...data, updatedAt: serverTimestamp()
+    })
+    return { success: true }
+  } catch (error) {
+    return { success: false, error: error.message }
+  }
+}
+
 export const deleteGroup = async (id) => {
   try {
     await deleteDoc(doc(db, COLLECTIONS.GROUPS, id))
