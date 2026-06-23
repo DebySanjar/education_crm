@@ -5,7 +5,7 @@ import styled from 'styled-components';
 import { useOnboarding } from '../context/OnboardingContext';
 import { useLocation } from 'react-router-dom';
 
-const TooltipContent = styled.div`
+const TooltipContainer = styled.div`
   padding: 20px;
   color: #e2e8f0;
   font-size: 14px;
@@ -18,15 +18,60 @@ const TooltipTitle = styled.h3`
   font-weight: 700;
 `;
 
-const TooltipButton = styled.button`
-  background: linear-gradient(135deg, #00e0ff 0%, #7c3aed 100%);
-  color: white;
-  border: none;
+const TooltipContentText = styled.div`
+  line-height: 1.6;
+  margin-bottom: 20px;
+`;
+
+const TooltipButtonsRow = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+`;
+
+const TooltipButtonsLeft = styled.div`
+  display: flex;
+  gap: 10px;
+`;
+
+const ButtonBack = styled.button`
+  background: transparent;
+  border: 1px solid #2d3748;
+  color: #8892b0;
   padding: 8px 16px;
   border-radius: 8px;
   cursor: pointer;
   font-weight: 600;
-  margin-top: 10px;
+  transition: all 0.15s;
+  &:hover {
+    color: #e2e8f0;
+    border-color: #4a5568;
+  }
+`;
+
+const ButtonSkip = styled.button`
+  background: transparent;
+  border: none;
+  color: #ff6b6b;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.15s;
+  &:hover {
+    color: #ff8a8a;
+  }
+`;
+
+const ButtonPrimary = styled.button`
+  background: linear-gradient(135deg, #00e0ff 0%, #7c3aed 100%);
+  color: white;
+  border: none;
+  padding: 8px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.15s;
   &:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0, 224, 255, 0.4);
@@ -172,31 +217,24 @@ export default function OnboardingTour() {
           boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)',
         },
         buttonNext: {
-          background: 'linear-gradient(135deg, #00e0ff 0%, #7c3aed 100%)',
-          borderRadius: '8px',
-          padding: '8px 20px',
-          fontWeight: '600',
+          display: 'none',
         },
         buttonBack: {
-          color: '#8892b0',
-          marginRight: '10px',
+          display: 'none',
         },
         buttonSkip: {
-          color: '#ff6b6b',
+          display: 'none',
         },
       }}
       callback={handleJoyrideCallback}
       tooltipComponent={({
-        continuous,
         index,
         step,
         backProps,
-        closeProps,
         primaryProps,
         skipProps,
         tooltipProps,
         isLastStep,
-        size,
       }) => (
         <div {...tooltipProps}>
           <motion.div
@@ -204,46 +242,19 @@ export default function OnboardingTour() {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ duration: 0.3, type: 'spring', stiffness: 300, damping: 25 }}
           >
-            <TooltipContent>
+            <TooltipContainer>
               {step.title && <TooltipTitle>{step.title}</TooltipTitle>}
-              <div style={{ lineHeight: '1.6', marginBottom: '20px' }}>
-                {step.content}
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  {index > 0 && (
-                  <button {...backProps} style={{
-                    background: 'transparent',
-                    border: '1px solid #2d3748',
-                    color: '#8892b0',
-                    padding: '8px 16px',
-                    borderRadius: '8px',
-                    cursor: 'pointer',
-                    marginRight: '10px',
-                    fontWeight: '600'
-                  }}>
-                    Orqaga
-                  </button>
-                )}
-                  {!isLastStep && (
-                  <button {...skipProps} style={{
-                    background: 'transparent',
-                    border: 'none',
-                    color: '#ff6b6b',
-                    padding: '8px 16px',
-                    borderRadius: '8px',
-                    cursor: 'pointer',
-                    fontWeight: '600'
-                  }}>
-                    Otkazib yuborish
-                  </button>
-                )}
-                </div>
-                <TooltipButton {...primaryProps}>
+              <TooltipContentText>{step.content}</TooltipContentText>
+              <TooltipButtonsRow>
+                <TooltipButtonsLeft>
+                  {index > 0 && <ButtonBack {...backProps}>Orqaga</ButtonBack>}
+                  {!isLastStep && <ButtonSkip {...skipProps}>Otkazib yuborish</ButtonSkip>}
+                </TooltipButtonsLeft>
+                <ButtonPrimary {...primaryProps}>
                   {isLastStep ? 'Tugatish' : 'Keyingisi'}
-                </TooltipButton>
-              </div>
-            </TooltipContent>
+                </ButtonPrimary>
+              </TooltipButtonsRow>
+            </TooltipContainer>
           </motion.div>
         </div>
       )}
