@@ -1,0 +1,64 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ═══════════════════════════════════════════════════════════
+    // SECURE MODE - Firebase Authentication bilan
+    // ═══════════════════════════════════════════════════════════
+    // Bu rules faqat Firebase Auth qo'shganingizdan keyin ishlaydi!
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && 
+             request.auth.token.email == 'admin@avtomakrab.uz';
+    }
+    
+    // Students collection
+    match /students/{studentId} {
+      // Hamma o'qiy oladi
+      allow read: if true;
+      
+      // Faqat authenticated user yoza oladi
+      allow create, update, delete: if isAuthenticated();
+    }
+    
+    // Payments collection
+    match /payments/{paymentId} {
+      allow read: if true;
+      allow create, update, delete: if isAuthenticated();
+    }
+    
+    // Attendance collection
+    match /attendance/{date} {
+      allow read: if true;
+      allow create, update, delete: if isAuthenticated();
+    }
+    
+    // Expenses collection
+    match /expenses/{expenseId} {
+      allow read: if true;
+      allow create, update, delete: if isAuthenticated();
+    }
+    
+    // Groups collection
+    match /groups/{groupId} {
+      allow read: if true;
+      allow create, update, delete: if isAuthenticated();
+    }
+    
+    // Balance collection
+    match /balance/{balanceId} {
+      allow read: if true;
+      allow create, update, delete: if isAuthenticated();
+    }
+    
+    // Admin-only collection (kelajakda)
+    match /settings/{document} {
+      allow read, write: if isAdmin();
+    }
+  }
+}

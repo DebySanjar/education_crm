@@ -1,0 +1,68 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ═══════════════════════════════════════════════════════════
+    // PRODUCTION MODE - Xavfsiz Rules
+    // ═══════════════════════════════════════════════════════════
+    
+    // Helper function - faqat sizning domeningizdan
+    function isValidOrigin() {
+      return request.auth != null || 
+             request.headers.origin.matches('.*avtomakrab.*') ||
+             request.headers.origin.matches('.*vercel.app.*') ||
+             request.headers.origin.matches('localhost.*');
+    }
+    
+    // Students collection
+    match /students/{studentId} {
+      // Hamma o'qiy oladi
+      allow read: if true;
+      
+      // Faqat valid origin yoza oladi
+      allow create: if isValidOrigin();
+      allow update: if isValidOrigin();
+      allow delete: if isValidOrigin();
+    }
+    
+    // Payments collection
+    match /payments/{paymentId} {
+      allow read: if true;
+      allow create: if isValidOrigin();
+      allow update: if isValidOrigin();
+      allow delete: if isValidOrigin();
+    }
+    
+    // Attendance collection
+    match /attendance/{date} {
+      allow read: if true;
+      allow create: if isValidOrigin();
+      allow update: if isValidOrigin();
+      allow delete: if isValidOrigin();
+    }
+    
+    // Expenses collection
+    match /expenses/{expenseId} {
+      allow read: if true;
+      allow create: if isValidOrigin();
+      allow update: if isValidOrigin();
+      allow delete: if isValidOrigin();
+    }
+    
+    // Groups collection
+    match /groups/{groupId} {
+      allow read: if true;
+      allow create: if isValidOrigin();
+      allow update: if isValidOrigin();
+      allow delete: if isValidOrigin();
+    }
+    
+    // Balance collection
+    match /balance/{balanceId} {
+      allow read: if true;
+      allow create: if isValidOrigin();
+      allow update: if isValidOrigin();
+      allow delete: if isValidOrigin();
+    }
+  }
+}

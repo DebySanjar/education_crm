@@ -1,0 +1,467 @@
+import React, { useState } from 'react'
+import { Outlet, NavLink, useNavigate } from 'react-router-dom'
+import styled from 'styled-components'
+import { useAuth } from '../context/AuthContext'
+import {
+  MdDashboard, MdPeople, MdChecklist, MdPayment, MdBarChart, MdSettings,
+  MdLogout, MdMenu, MdDirectionsCar, MdChevronLeft, MdClose, MdMoneyOff,
+} from 'react-icons/md'
+
+const navItems = [
+  { to: '/', icon: <MdDashboard />, label: 'Bosh sahifa' },
+  { to: '/students', icon: <MdPeople />, label: "O'quvchilar" },
+  { to: '/attendance', icon: <MdChecklist />, label: 'Davomat' },
+  { to: '/payments', icon: <MdPayment />, label: "To'lovlar" },
+  { to: '/expenses', icon: <MdMoneyOff />, label: 'Chiqimlar' },
+  { to: '/statistics', icon: <MdBarChart />, label: 'Statistika' },
+]
+
+export default function DashboardLayout() {
+  const { logout } = useAuth()
+  const navigate = useNavigate()
+  const [collapsed, setCollapsed] = useState(false)
+  const [mobileOpen, setMobileOpen] = useState(false)
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false)
+
+  const handleLogout = () => {
+    logout()
+    navigate('/login')
+  }
+
+  return (
+    <LayoutWrapper>
+      {/* Mobile overlay */}
+      {mobileOpen && <Overlay onClick={() => setMobileOpen(false)} />}
+
+      <Sidebar $collapsed={collapsed} $mobileOpen={mobileOpen}>
+        {/* Logo + collapse button in header */}
+        <SidebarHeader $collapsed={collapsed}>
+          {!collapsed && <LogoIcon><MdDirectionsCar /></LogoIcon>}
+          {!collapsed && <LogoText>EXPRESS <span>TEST</span></LogoText>}
+          {collapsed && <LogoIconCenter><MdDirectionsCar /></LogoIconCenter>}
+          {/* Desktop collapse btn — top-right of header */}
+          {!collapsed && (
+            <CollapseBtn
+              onClick={() => setCollapsed(c => !c)}
+              title="Yopish"
+            >
+              <MdChevronLeft />
+            </CollapseBtn>
+          )}
+          {/* Mobile close btn */}
+          <MobileCloseBtn onClick={() => setMobileOpen(false)}>
+            <MdClose />
+          </MobileCloseBtn>
+        </SidebarHeader>
+
+        {/* Nav items */}
+        <Nav>
+          {/* Collapsed holatda kengaytirish tugmasi nav tepasida */}
+          {collapsed && (
+            <ExpandBtn onClick={() => setCollapsed(false)} title="Kengaytirish">
+              <MdChevronLeft style={{ transform: 'rotate(180deg)' }} />
+            </ExpandBtn>
+          )}
+          {navItems.map(item => (
+            <NavItem
+              key={item.to}
+              to={item.to}
+              end={item.to === '/'}
+              $collapsed={collapsed}
+              onClick={() => setMobileOpen(false)}
+              title={collapsed ? item.label : ''}
+            >
+              <span className="icon">{item.icon}</span>
+              {!collapsed && <span className="label">{item.label}</span>}
+            </NavItem>
+          ))}
+        </Nav>
+
+        {/* Settings */}
+        <NavItem
+          to="/settings"
+          $collapsed={collapsed}
+          onClick={() => setMobileOpen(false)}
+          title={collapsed ? 'Sozlamalar' : ''}
+          style={{ borderTop: '1px solid #1e2235', marginTop: 'auto' }}
+        >
+          <span className="icon"><MdSettings /></span>
+          {!collapsed && <span className="label">Sozlamalar</span>}
+        </NavItem>
+
+        {/* Logout */}
+        <LogoutBtn onClick={() => setShowLogoutDialog(true)} $collapsed={collapsed} title={collapsed ? 'Chiqish' : ''}>
+          <MdLogout />
+          {!collapsed && <span>Chiqish</span>}
+        </LogoutBtn>
+      </Sidebar>
+
+      <Main $collapsed={collapsed}>
+        {/* TopBar faqat mobilda hamburger uchun, desktop da yo'q */}
+        <MobileTopBar>
+          <MobileMenuBtn onClick={() => setMobileOpen(o => !o)}>
+            <MdMenu />
+          </MobileMenuBtn>
+          <AdminBadge>Admin</AdminBadge>
+        </MobileTopBar>
+
+        <Content>
+          <Outlet />
+        </Content>
+      </Main>
+
+      {/* Logout confirm dialog */}
+      {showLogoutDialog && (
+        <DialogOverlay onClick={() => setShowLogoutDialog(false)}>
+          <Dialog onClick={e => e.stopPropagation()}>
+            <DialogIcon><MdLogout /></DialogIcon>
+            <DialogTitle>Chiqishni tasdiqlang</DialogTitle>
+            <DialogText>Tizimdan chiqmoqchimisiz?</DialogText>
+            <DialogBtns>
+              <DialogCancel onClick={() => setShowLogoutDialog(false)}>Bekor qilish</DialogCancel>
+              <DialogConfirm onClick={handleLogout}>Ha, chiqish</DialogConfirm>
+            </DialogBtns>
+          </Dialog>
+        </DialogOverlay>
+      )}
+    </LayoutWrapper>
+  )
+}
+
+/* ─── Styled Components ─── */
+
+const LayoutWrapper = styled.div`
+  display: flex;
+  min-height: 100vh;
+  background: #0f1117;
+`
+
+const Overlay = styled.div`
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.65);
+  z-index: 99;
+  @media (min-width: 769px) { display: none; }
+`
+
+const SIDEBAR_FULL = '240px'
+const SIDEBAR_MINI = '64px'
+
+const Sidebar = styled.aside`
+  width: ${({ $collapsed }) => $collapsed ? SIDEBAR_MINI : SIDEBAR_FULL};
+  min-height: 100vh;
+  background: #13161f;
+  border-right: 1px solid #1e2235;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 100;
+  transition: width 0.25s ease;
+  overflow: hidden;
+
+  /* Mobile: slide in/out, always full width */
+  @media (max-width: 768px) {
+    width: ${SIDEBAR_FULL};
+    transform: ${({ $mobileOpen }) => $mobileOpen ? 'translateX(0)' : 'translateX(-100%)'};
+    transition: transform 0.28s ease;
+  }
+`
+
+const SidebarHeader = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: ${({ $collapsed }) => $collapsed ? '0 0 0 0' : '0 12px 0 20px'};
+  justify-content: ${({ $collapsed }) => $collapsed ? 'center' : 'space-between'};
+  border-bottom: 1px solid #1e2235;
+  min-height: 60px;
+  flex-shrink: 0;
+  position: relative;
+`
+
+const LogoIcon = styled.div`
+  font-size: 1.7rem;
+  color: #00e0ff;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  padding-left: ${({ $collapsed }) => $collapsed ? '0' : '0'};
+`
+
+const LogoIconCenter = styled.div`
+  font-size: 1.7rem;
+  color: #00e0ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+`
+
+const LogoText = styled.div`
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
+  flex: 1;
+  span { color: #00e0ff; }
+`
+
+const Nav = styled.nav`
+  flex: 1;
+  padding: 12px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+`
+
+const NavItem = styled(NavLink)`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: ${({ $collapsed }) => $collapsed ? '13px 0' : '12px 20px'};
+  justify-content: ${({ $collapsed }) => $collapsed ? 'center' : 'flex-start'};
+  color: #8892b0;
+  text-decoration: none;
+  font-size: 0.93rem;
+  font-weight: 500;
+  border-left: 3px solid transparent;
+  transition: all 0.18s;
+  white-space: nowrap;
+
+  .icon {
+    font-size: 1.25rem;
+    flex-shrink: 0;
+  }
+
+  &:hover {
+    color: #00e0ff;
+    background: rgba(0, 224, 255, 0.06);
+  }
+
+  &.active {
+    color: #00e0ff;
+    background: rgba(0, 224, 255, 0.09);
+    border-left-color: ${({ $collapsed }) => $collapsed ? 'transparent' : '#00e0ff'};
+  }
+`
+
+const LogoutBtn = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: ${({ $collapsed }) => $collapsed ? '14px 0' : '14px 20px'};
+  justify-content: ${({ $collapsed }) => $collapsed ? 'center' : 'flex-start'};
+  color: #ff6b6b;
+  background: none;
+  border: none;
+  border-top: 1px solid #1e2235;
+  cursor: pointer;
+  font-size: 0.93rem;
+  font-weight: 500;
+  width: 100%;
+  transition: background 0.18s;
+  white-space: nowrap;
+
+  svg { font-size: 1.2rem; flex-shrink: 0; }
+  &:hover { background: rgba(255, 107, 107, 0.08); }
+`
+
+const ExpandBtn = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  border-bottom: 1px solid #1e2235;
+  color: #4a5568;
+  cursor: pointer;
+  font-size: 1.2rem;
+  padding: 10px 0;
+  width: 100%;
+  transition: color 0.18s, background 0.18s;
+  &:hover { color: #00e0ff; background: rgba(0,224,255,0.06); }
+`
+
+const CollapseBtn = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: #4a5568;
+  cursor: pointer;
+  font-size: 1.2rem;
+  padding: 6px;
+  border-radius: 6px;
+  flex-shrink: 0;
+  transition: color 0.18s, background 0.18s;
+
+  &:hover { color: #00e0ff; background: rgba(0,224,255,0.08); }
+
+  /* Hide on mobile */
+  @media (max-width: 768px) { display: none; }
+`
+
+const MobileCloseBtn = styled.button`
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: #4a5568;
+  cursor: pointer;
+  font-size: 1.3rem;
+  padding: 6px;
+  border-radius: 6px;
+  flex-shrink: 0;
+  &:hover { color: #e2e8f0; }
+
+  @media (max-width: 768px) { display: flex; }
+`
+
+const Main = styled.div`
+  flex: 1;
+  margin-left: ${({ $collapsed }) => $collapsed ? SIDEBAR_MINI : SIDEBAR_FULL};
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  transition: margin-left 0.25s ease;
+
+  @media (max-width: 768px) {
+    margin-left: 0;
+  }
+`
+
+/* Thin top bar — mobile only */
+const MobileTopBar = styled.header`
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  height: 52px;
+  background: #13161f;
+  border-bottom: 1px solid #1e2235;
+  padding: 0 16px;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+
+  @media (max-width: 768px) { display: flex; }
+`
+
+const MobileMenuBtn = styled.button`
+  background: none;
+  border: none;
+  color: #8892b0;
+  font-size: 1.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 4px;
+`
+
+const AdminBadge = styled.div`
+  background: rgba(0, 224, 255, 0.1);
+  border: 1px solid rgba(0, 224, 255, 0.3);
+  color: #00e0ff;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+`
+
+const Content = styled.main`
+  flex: 1;
+  padding: 24px;
+  @media (max-width: 480px) { padding: 16px; }
+`
+
+/* ── Logout Dialog ── */
+const DialogOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  backdrop-filter: blur(2px);
+`
+
+const Dialog = styled.div`
+  background: #13161f;
+  border: 1px solid #2d3748;
+  border-radius: 16px;
+  padding: 32px 28px 24px;
+  max-width: 360px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 24px 48px rgba(0,0,0,0.5);
+`
+
+const DialogIcon = styled.div`
+  font-size: 2.2rem;
+  color: #ff6b6b;
+  background: rgba(255,107,107,0.1);
+  border: 1px solid rgba(255,107,107,0.2);
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
+`
+
+const DialogTitle = styled.div`
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #e2e8f0;
+`
+
+const DialogText = styled.div`
+  font-size: 0.88rem;
+  color: #8892b0;
+  text-align: center;
+  margin-bottom: 8px;
+`
+
+const DialogBtns = styled.div`
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  margin-top: 4px;
+`
+
+const DialogCancel = styled.button`
+  flex: 1;
+  padding: 10px;
+  background: #1a1d2e;
+  border: 1px solid #2d3748;
+  color: #8892b0;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.15s;
+  &:hover { color: #e2e8f0; border-color: #4a5568; }
+`
+
+const DialogConfirm = styled.button`
+  flex: 1;
+  padding: 10px;
+  background: rgba(255,107,107,0.12);
+  border: 1px solid rgba(255,107,107,0.35);
+  color: #ff6b6b;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.15s;
+  &:hover { background: rgba(255,107,107,0.22); }
+`

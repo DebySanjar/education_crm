@@ -1,0 +1,42 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Students collection
+    match /students/{studentId} {
+      allow read: if true;  // Hamma o'qiy oladi
+      allow write: if true; // Hozircha hamma yoza oladi (keyinroq auth qo'shiladi)
+    }
+    
+    
+    // Payments collection
+    match /payments/{paymentId} {
+      allow read: if true;
+      allow write: if true;
+    }
+    
+    // Attendance collection
+    match /attendance/{date} {
+      allow read: if true;
+      allow write: if true;
+    }
+    
+    // Expenses collection
+    match /expenses/{expenseId} {
+      allow read: if true;
+      allow write: if true;
+    }
+    
+    // Groups collection
+    match /groups/{groupId} {
+      allow read: if true;
+      allow write: if true;
+    }
+    
+    // Balance collection
+    match /balance/{balanceId} {
+      allow read: if true;
+      allow write: if true;
+    }
+  }
+}

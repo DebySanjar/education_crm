@@ -1,0 +1,58 @@
+import React from 'react'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import LoginPage from './pages/LoginPage'
+import DashboardLayout from './layouts/DashboardLayout'
+import Dashboard from './pages/Dashboard'
+import Students from './pages/Students'
+import Attendance from './pages/Attendance'
+import Payments from './pages/Payments'
+import Expenses from './pages/Expenses'
+import Statistics from './pages/Statistics'
+import Settings from './pages/Settings'
+import { AuthProvider, useAuth } from './context/AuthContext'
+import { DataProvider } from './context/DataContext'
+import { ToastProvider } from './context/ToastContext'
+
+function PrivateRoute({ children }) {
+  const { isLoggedIn } = useAuth()
+  return isLoggedIn ? children : <Navigate to="/login" replace />
+}
+
+function AppRoutes() {
+  return (
+    <Routes>
+      <Route path="/login" element={<LoginPage />} />
+      <Route
+        path="/"
+        element={
+          <PrivateRoute>
+            <DashboardLayout />
+          </PrivateRoute>
+        }
+      >
+        <Route index element={<Dashboard />} />
+        <Route path="students" element={<Students />} />
+        <Route path="attendance" element={<Attendance />} />
+        <Route path="payments" element={<Payments />} />
+        <Route path="expenses" element={<Expenses />} />
+        <Route path="statistics" element={<Statistics />} />
+        <Route path="settings" element={<Settings />} />
+      </Route>
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  )
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <ToastProvider>
+          <DataProvider>
+            <AppRoutes />
+          </DataProvider>
+        </ToastProvider>
+      </AuthProvider>
+    </BrowserRouter>
+  )
+}
