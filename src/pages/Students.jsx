@@ -6,8 +6,8 @@ import { useToast } from '../context/ToastContext'
 import { saveAs } from 'file-saver'
 import { generateContract } from '../utils/generateContract'
 import ExcelTicketBtn from '../components/ExcelTicketBtn'
-import { fetchStudentsByGroup, addStudent as addStudentFS, updateStudent as updateStudentFS, deleteStudent as deleteStudentFS } from '../services/firestoreService'
-import { MdAdd, MdEdit, MdDelete, MdSearch, MdClose, MdPerson, MdDescription, MdRefresh, MdExpandMore, MdExpandLess } from 'react-icons/md'
+import { addStudent as addStudentFS, updateStudent as updateStudentFS, deleteStudent as deleteStudentFS } from '../services/firestoreService'
+import { MdAdd, MdEdit, MdDelete, MdSearch, MdClose, MdPerson, MdDescription, MdExpandMore, MdExpandLess } from 'react-icons/md'
 
 const MED_STATUSES = ['Topshirilgan', 'Topshirilmagan']
 
@@ -18,16 +18,12 @@ const emptyForm = {
 }
 
 export default function Students() {
-  const { groups } = useData()
+  const { groups, students: allStudents } = useData()
   const { isSuperAdmin } = useAuth()
   const toast = useToast()
 
   // Guruh tanlash — birinchi guruh default
   const [selectedGroup, setSelectedGroup] = useState(null)
-  const [students, setStudents] = useState([])
-  const [loadingStudents, setLoadingStudents] = useState(false)
-  // Cache: { [groupName]: [...students] }
-  const cache = useRef({})
 
   const [search, setSearch] = useState('')
   const [showModal, setShowModal] = useState(false)
@@ -45,37 +41,14 @@ export default function Students() {
     }
   }, [groups]) // eslint-disable-line
 
-  // Guruh o'zgarganda Firestore dan yuklash (cache bilan)
-  useEffect(() => {
-    if (!selectedGroup) return
-    if (cache.current[selectedGroup]) {
-      setStudents(cache.current[selectedGroup])
-      return
-    }
-    setLoadingStudents(true)
-    fetchStudentsByGroup(selectedGroup).then(res => {
-      const data = res.success ? res.data : []
-      cache.current[selectedGroup] = data
-      setStudents(data)
-      setLoadingStudents(false)
-    })
-  }, [selectedGroup])
+  // Tanlangan guruh bo'yicha o'quvchilarni filtrlash
+  const students = selectedGroup 
+    ? allStudents.filter(s => s.group === selectedGroup) 
+    : []
 
-  // Local CRUD — state + cache yangilash
-  const localAdd = (student) => {
-    const updated = [student, ...(cache.current[selectedGroup] || [])]
-    cache.current[selectedGroup] = updated
-    setStudents(updated)
-  }
-  const localUpdate = (id, data) => {
-    const updated = (cache.current[selectedGroup] || []).map(s => s.id === id ? { ...s, ...data } : s)
-    cache.current[selectedGroup] = updated
-    setStudents(updated)
-  }
-  const localDelete = (id) => {
-    const updated = (cache.current[selectedGroup] || []).filter(s => s.id !== id)
-    cache.current[selectedGroup] = updated
-    setStudents(updated)
+  // Guruhlar uchun o'quvchilar sonini hisoblash
+  const getGroupStudentCount = (groupName) => {
+    return allStudents.filter(s => s.group === groupName).length
   }
 
   const filtered = students.filter(s =>
@@ -118,14 +91,16 @@ export default function Students() {
 
     if (editId) {
       const res = await updateStudentFS(editId, saved)
-      if (res.success) { localUpdate(editId, saved); toast.success("O'quvchi ma'lumotlari saqlandi.") }
-      else toast.error("Saqlanmadi. Internetni tekshiring.")
+      if (res.success) { 
+        toast.success("O'quvchi ma'lumotlari saqlandi.") 
+      } else {
+        toast.error("Saqlanmadi. Internetni tekshiring.")
+      }
       setShowModal(false)
     } else {
       const res = await addStudentFS(saved)
       if (res.success) {
         const newStudent = { ...saved, id: res.id }
-        localAdd(newStudent)
         toast.success("O'quvchi qo'shildi.")
         setShowModal(false)
         setContractDialog(newStudent)
@@ -137,8 +112,11 @@ export default function Students() {
 
   const handleDelete = async (id) => {
     const res = await deleteStudentFS(id)
-    if (res.success) { localDelete(id); toast.success("O'quvchi o'chirildi.") }
-    else toast.error("O'chirilmadi.")
+    if (res.success) { 
+      toast.success("O'quvchi o'chirildi.") 
+    } else {
+      toast.error("O'chirilmadi.")
+    }
     setDeleteConfirm(null)
   }
 
@@ -152,18 +130,6 @@ export default function Students() {
     setSelectedGroup(groupName)
     setSearch('')
     setMobileGroupsExpanded(false)
-  }
-
-  const handleRefresh = () => {
-    if (!selectedGroup) return
-    delete cache.current[selectedGroup]
-    setLoadingStudents(true)
-    fetchStudentsByGroup(selectedGroup).then(res => {
-      const data = res.success ? res.data : []
-      cache.current[selectedGroup] = data
-      setStudents(data)
-      setLoadingStudents(false)
-    })
   }
 
   const exportExcel = async () => {
@@ -212,7 +178,6 @@ export default function Students() {
         <h2>O'quvchilar ro'yxati</h2>
         <HeaderActions>
           <ExcelTicketBtn onClick={exportExcel} label="Excel" subLabel={selectedGroup || ''} />
-          <RefreshBtn onClick={handleRefresh} title="Yangilash"><MdRefresh /></RefreshBtn>
           <AddBtn onClick={openAdd}><MdAdd /> O'quvchi qo'shish</AddBtn>
         </HeaderActions>
       </PageHeader>
@@ -222,9 +187,7 @@ export default function Students() {
         {groups.map(g => (
           <GroupTab key={g.id} $active={selectedGroup === g.name} onClick={() => handleGroupChange(g.name)}>
             {g.name}
-            {cache.current[g.name] !== undefined && (
-              <span>{cache.current[g.name].length}</span>
-            )}
+            <span>{getGroupStudentCount(g.name)}</span>
           </GroupTab>
         ))}
       </DesktopGroupTabs>
@@ -232,9 +195,7 @@ export default function Students() {
       <MobileGroupSelector>
         <MobileGroupButton onClick={() => setMobileGroupsExpanded(!mobileGroupsExpanded)}>
           <span>{selectedGroup}</span>
-          {cache.current[selectedGroup] !== undefined && (
-            <MobileCountBadge>{cache.current[selectedGroup].length}</MobileCountBadge>
-          )}
+          <MobileCountBadge>{getGroupStudentCount(selectedGroup)}</MobileCountBadge>
           {mobileGroupsExpanded ? <MdExpandLess /> : <MdExpandMore />}
         </MobileGroupButton>
         {mobileGroupsExpanded && (
@@ -246,9 +207,7 @@ export default function Students() {
                 onClick={() => handleGroupChange(g.name)}
               >
                 {g.name}
-                {cache.current[g.name] !== undefined && (
-                  <span>{cache.current[g.name].length}</span>
-                )}
+                <span>{getGroupStudentCount(g.name)}</span>
               </MobileGroupItem>
             ))}
           </MobileGroupList>
@@ -263,11 +222,6 @@ export default function Students() {
 
       {/* Jadval */}
       <TableWrapper>
-        {loadingStudents ? (
-          <LoadingRow>
-            <Spinner /><span>Yuklanmoqda...</span>
-          </LoadingRow>
-        ) : (
           <Table>
             <thead>
               <tr>
@@ -286,29 +240,51 @@ export default function Students() {
                 <tr><td colSpan={8}><EmptyRow>O'quvchi topilmadi</EmptyRow></td></tr>
               )}
               {filtered.map((s, i) => {
-                const debt = s.contractSum - s.paid
+                const debt = s.contractSum - s.paid;
                 return (
                   <tr key={s.id}>
                     <Td>{i + 1}</Td>
-                    <Td><StudentName><Avatar><MdPerson /></Avatar>{s.fullName}</StudentName></Td>
+                    <Td>
+                      <StudentName>
+                        <Avatar>
+                          <MdPerson />
+                        </Avatar>
+                        {s.fullName}
+                      </StudentName>
+                    </Td>
                     <Td>{s.phone}</Td>
-                    <Td className="hide-mobile"><MedBadge $ok={s.medStatus === 'Topshirilgan'}>{s.medStatus}</MedBadge></Td>
+                    <Td className="hide-mobile">
+                      <MedBadge $ok={s.medStatus === 'Topshirilgan'}>{s.medStatus}</MedBadge>
+                    </Td>
                     <Td className="hide-mobile">{s.contractSum.toLocaleString()}</Td>
-                    <Td className="hide-mobile"><GreenText>{s.paid.toLocaleString()}</GreenText></Td>
-                    <Td className="hide-mobile"><RedText>{debt > 0 ? debt.toLocaleString() : '—'}</RedText></Td>
+                    <Td className="hide-mobile">
+                      <GreenText>{s.paid.toLocaleString()}</GreenText>
+                    </Td>
+                    <Td className="hide-mobile">
+                      <RedText>{debt > 0 ? debt.toLocaleString() : '—'}</RedText>
+                    </Td>
                     <Td>
                       <ActionBtns>
-                        {isSuperAdmin() && <IconBtn $color="#00e0ff" onClick={() => openEdit(s)}><MdEdit /></IconBtn>}
-                        <IconBtn $color="#a78bfa" onClick={() => setContractDialog(s)}><MdDescription /></IconBtn>
-                        {isSuperAdmin() && <IconBtn $color="#ff6b6b" onClick={() => setDeleteConfirm(s.id)}><MdDelete /></IconBtn>}
+                        {isSuperAdmin() && (
+                          <IconBtn $color="#00e0ff" onClick={() => openEdit(s)}>
+                            <MdEdit />
+                          </IconBtn>
+                        )}
+                        <IconBtn $color="#a78bfa" onClick={() => setContractDialog(s)}>
+                          <MdDescription />
+                        </IconBtn>
+                        {isSuperAdmin() && (
+                          <IconBtn $color="#ff6b6b" onClick={() => setDeleteConfirm(s.id)}>
+                            <MdDelete />
+                          </IconBtn>
+                        )}
                       </ActionBtns>
                     </Td>
                   </tr>
-                )
+                );
               })}
             </tbody>
           </Table>
-        )}
       </TableWrapper>
       <CountBadge>Jami: {filtered.length} ta o'quvchi</CountBadge>
 
