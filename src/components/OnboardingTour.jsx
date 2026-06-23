@@ -99,12 +99,14 @@ export default function OnboardingTour() {
           {
             target: '#dashboard-kpis',
             content: 'Bu yerda jami oquvchilar, tushum va xarajatlarni real vaqt rejimida korishingiz mumkin.',
-            title: '📊 Asosiy korsatkichlar'
+            title: '📊 Asosiy korsatkichlar',
+            disableBeacon: true
           },
           {
             target: '#sidebar-nav',
             content: 'Bu yerda barcha sahifalarga otingiz mumkin: Oquvchilar, Guruhlar, Tolovlar va boshqalar.',
-            title: '🧭 Navigatsiya paneli'
+            title: '🧭 Navigatsiya paneli',
+            disableBeacon: true
           }
         ];
       case '/students':
@@ -118,12 +120,14 @@ export default function OnboardingTour() {
           {
             target: '#add-student-btn',
             content: 'Yangi oquvchi qoshish uchun shu tugmani bosing.',
-            title: '➕ Yangi oquvchi'
+            title: '➕ Yangi oquvchi',
+            disableBeacon: true
           },
           {
             target: '#students-groups',
             content: 'Oquvchilarni guruhlar boyicha filtrlashingiz mumkin.',
-            title: '🏷️ Guruhlar'
+            title: '🏷️ Guruhlar',
+            disableBeacon: true
           }
         ];
       case '/groups':
@@ -137,7 +141,8 @@ export default function OnboardingTour() {
           {
             target: '#add-group-btn',
             content: 'Yangi guruh qoshishingiz mumkin.',
-            title: '➕ Yangi guruh'
+            title: '➕ Yangi guruh',
+            disableBeacon: true
           }
         ];
       case '/payments':
@@ -151,7 +156,8 @@ export default function OnboardingTour() {
           {
             target: '#add-payment-btn',
             content: 'Yangi tolov qoshishingiz mumkin.',
-            title: '➕ Tolov qoshish'
+            title: '➕ Tolov qoshish',
+            disableBeacon: true
           }
         ];
       case '/expenses':
@@ -165,7 +171,8 @@ export default function OnboardingTour() {
           {
             target: '#add-expense-btn',
             content: 'Yangi xarajat qoshishingiz mumkin.',
-            title: '➕ Xarajat qoshish'
+            title: '➕ Xarajat qoshish',
+            disableBeacon: true
           }
         ];
       case '/statistics':
@@ -179,7 +186,8 @@ export default function OnboardingTour() {
           {
             target: '#stats-charts',
             content: 'Grafiklar yordamida malumotlarni vizual koring.',
-            title: '📉 Grafiklar'
+            title: '📉 Grafiklar',
+            disableBeacon: true
           }
         ];
       default:

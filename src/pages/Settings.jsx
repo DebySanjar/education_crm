@@ -3,9 +3,7 @@ import styled from 'styled-components'
 import { useAuth } from '../context/AuthContext'
 import { useData } from '../context/DataContext'
 import { useToast } from '../context/ToastContext'
-import { useOnboarding } from '../context/OnboardingContext'
-import { useNavigate } from 'react-router-dom'
-import { MdSave, MdCheckCircle, MdTimer, MdDeleteForever, MdWarning, MdRefresh } from 'react-icons/md'
+import { MdSave, MdCheckCircle, MdTimer, MdDeleteForever, MdWarning } from 'react-icons/md'
 
 export default function Settings() {
   const {
@@ -17,15 +15,7 @@ export default function Settings() {
   } = useAuth()
 
   const { clearAllData } = useData()
-  const { restartTour } = useOnboarding()
-  const navigate = useNavigate()
   const toast = useToast()
-
-  const handleRestartTour = () => {
-    restartTour()
-    // Dashboard sahifasiga yo'naltirish
-    navigate('/')
-  }
 
   const [tempAutoLogoutMinutes, setTempAutoLogoutMinutes] = useState(autoLogoutMinutes.toString())
   const [saveSuccess, setSaveSuccess] = useState(false)
@@ -54,19 +44,6 @@ export default function Settings() {
           <p>Tizim sozlamalari va foydalanuvchi ma'lumotlari</p>
         </div>
       </PageHeader>
-
-      <Section>
-        <SectionHeader>
-          <MdRefresh style={{ color: '#00e0ff', fontSize: '1.3rem' }} />
-          <SectionTitle>Onboarding turini qayta boshlash</SectionTitle>
-        </SectionHeader>
-        <SectionBody>
-          <RestartTourButton onClick={handleRestartTour}>
-            <MdRefresh />
-            Tourni qayta ko'rsatish
-          </RestartTourButton>
-        </SectionBody>
-      </Section>
 
       {isSuperAdmin() && (
       <Section>
@@ -293,23 +270,6 @@ const WarningText = styled.div`
   font-size: 0.85rem;
   color: #8892b0;
   line-height: 1.5;
-`
-
-const RestartTourButton = styled.button`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: #00e0ff18;
-  border: 1px solid #00e0ff44;
-  color: #00e0ff;
-  padding: 10px 20px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  font-weight: 600;
-  transition: all 0.15s;
-  &:hover { background: #00e0ff28; }
-  svg { font-size: 1.2rem; }
 `
 
 const ClearButton = styled.button`
