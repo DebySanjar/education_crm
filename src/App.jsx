@@ -56,6 +56,7 @@ export default function App() {
       <AuthProvider>
         <ToastProvider>
           <DataProvider>
+            {/* OnboardingProvider AuthProvider ichida bo'lishi kerak, chunki u useAuth dan foydalanadi */}
             <OnboardingProvider>
               <AppRoutes />
             </OnboardingProvider>
