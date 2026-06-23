@@ -7,7 +7,7 @@ import { saveAs } from 'file-saver'
 import { generateContract } from '../utils/generateContract'
 import ExcelTicketBtn from '../components/ExcelTicketBtn'
 import { fetchStudentsByGroup, addStudent as addStudentFS, updateStudent as updateStudentFS, deleteStudent as deleteStudentFS } from '../services/firestoreService'
-import { MdAdd, MdEdit, MdDelete, MdSearch, MdClose, MdPerson, MdDescription, MdRefresh } from 'react-icons/md'
+import { MdAdd, MdEdit, MdDelete, MdSearch, MdClose, MdPerson, MdDescription, MdRefresh, MdExpandMore, MdExpandLess } from 'react-icons/md'
 
 const MED_STATUSES = ['Topshirilgan', 'Topshirilmagan']
 
@@ -36,6 +36,7 @@ export default function Students() {
   const [deleteConfirm, setDeleteConfirm] = useState(null)
   const [contractDialog, setContractDialog] = useState(null)
   const [errors, setErrors] = useState({})
+  const [mobileGroupsExpanded, setMobileGroupsExpanded] = useState(false)
 
   // Guruhlar yuklanganda birinchisini tanlash
   useEffect(() => {
@@ -150,6 +151,7 @@ export default function Students() {
   const handleGroupChange = (groupName) => {
     setSelectedGroup(groupName)
     setSearch('')
+    setMobileGroupsExpanded(false)
   }
 
   const handleRefresh = () => {
@@ -173,7 +175,7 @@ export default function Students() {
       { key: 'med', width: 14 }, { key: 'group', width: 14 }, { key: 'contract', width: 18 },
       { key: 'paid', width: 18 }, { key: 'debt', width: 18 }, { key: 'joinDate', width: 14 }, { key: 'status', width: 10 },
     ]
-    const headerRow = sheet.addRow(["Ism-Sharif","Telefon","Pasport","Medspr.","Guruh","Shartnoma (so'm)","To'langan (so'm)","Qarz (so'm)","Qo'shilgan sana","Holat"])
+    const headerRow = sheet.addRow(['Ism-Sharif','Telefon','Pasport','Medspr.','Guruh','Shartnoma (so\'m)','To\'langan (so\'m)','Qarz (so\'m)','Qo\'shilgan sana','Holat'])
     headerRow.height = 22
     headerRow.eachCell(cell => {
       cell.font = { bold: true, color: { argb: 'FF374151' }, size: 11 }
@@ -186,7 +188,7 @@ export default function Students() {
       row.height = 20
       row.eachCell((cell, col) => {
         cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: idx%2===0?'FFF0F9FF':'FFE8F4FD' } }
-        cell.alignment = { vertical: 'middle', horizontal: col===1?'left':'center' }
+        cell.alignment = { vertical: 'middle', horizontal: col===2?'left':'center' }
         cell.font = { size: 10, color: { argb: 'FF1E293B' } }
         cell.border = { bottom: { style: 'hair', color: { argb: 'FFCBD5E1' } } }
         if (col===8 && s.contractSum-s.paid>0) cell.font = { size:10, bold:true, color:{ argb:'FF991B1B' } }
@@ -216,7 +218,7 @@ export default function Students() {
       </PageHeader>
 
       {/* Guruh tablari */}
-      <GroupTabs>
+      <DesktopGroupTabs>
         {groups.map(g => (
           <GroupTab key={g.id} $active={selectedGroup === g.name} onClick={() => handleGroupChange(g.name)}>
             {g.name}
@@ -225,7 +227,33 @@ export default function Students() {
             )}
           </GroupTab>
         ))}
-      </GroupTabs>
+      </DesktopGroupTabs>
+
+      <MobileGroupSelector>
+        <MobileGroupButton onClick={() => setMobileGroupsExpanded(!mobileGroupsExpanded)}>
+          <span>{selectedGroup}</span>
+          {cache.current[selectedGroup] !== undefined && (
+            <MobileCountBadge>{cache.current[selectedGroup].length}</MobileCountBadge>
+          )}
+          {mobileGroupsExpanded ? <MdExpandLess /> : <MdExpandMore />}
+        </MobileGroupButton>
+        {mobileGroupsExpanded && (
+          <MobileGroupList>
+            {groups.map(g => (
+              <MobileGroupItem 
+                key={g.id} 
+                $active={selectedGroup === g.name} 
+                onClick={() => handleGroupChange(g.name)}
+              >
+                {g.name}
+                {cache.current[g.name] !== undefined && (
+                  <span>{cache.current[g.name].length}</span>
+                )}
+              </MobileGroupItem>
+            ))}
+          </MobileGroupList>
+        )}
+      </MobileGroupSelector>
 
       {/* Qidiruv */}
       <SearchBox>
@@ -243,8 +271,14 @@ export default function Students() {
           <Table>
             <thead>
               <tr>
-                <Th>#</Th><Th>Ism-Sharif</Th><Th>Telefon</Th>
-                <Th>Medspr.</Th><Th>Shartnoma</Th><Th>To'langan</Th><Th>Qarz</Th><Th>Amallar</Th>
+                <Th>#</Th>
+                <Th>Ism-Sharif</Th>
+                <Th>Telefon</Th>
+                <Th className="hide-mobile">Medspr.</Th>
+                <Th className="hide-mobile">Shartnoma</Th>
+                <Th className="hide-mobile">To'langan</Th>
+                <Th className="hide-mobile">Qarz</Th>
+                <Th>Amallar</Th>
               </tr>
             </thead>
             <tbody>
@@ -258,10 +292,10 @@ export default function Students() {
                     <Td>{i + 1}</Td>
                     <Td><StudentName><Avatar><MdPerson /></Avatar>{s.fullName}</StudentName></Td>
                     <Td>{s.phone}</Td>
-                    <Td><MedBadge $ok={s.medStatus === 'Topshirilgan'}>{s.medStatus}</MedBadge></Td>
-                    <Td>{s.contractSum.toLocaleString()}</Td>
-                    <Td><GreenText>{s.paid.toLocaleString()}</GreenText></Td>
-                    <Td><RedText>{debt > 0 ? debt.toLocaleString() : '—'}</RedText></Td>
+                    <Td className="hide-mobile"><MedBadge $ok={s.medStatus === 'Topshirilgan'}>{s.medStatus}</MedBadge></Td>
+                    <Td className="hide-mobile">{s.contractSum.toLocaleString()}</Td>
+                    <Td className="hide-mobile"><GreenText>{s.paid.toLocaleString()}</GreenText></Td>
+                    <Td className="hide-mobile"><RedText>{debt > 0 ? debt.toLocaleString() : '—'}</RedText></Td>
                     <Td>
                       <ActionBtns>
                         {isSuperAdmin() && <IconBtn $color="#00e0ff" onClick={() => openEdit(s)}><MdEdit /></IconBtn>}
@@ -321,7 +355,7 @@ export default function Students() {
                 <FormGroup>
                   <label>Shartnoma summasi (so'm) *</label>
                   <input type="text" value={form.contractSum}
-                    onChange={e => { const f = e.target.value.replace(/\D/g,'').replace(/\B(?=(\d{3})+(?!\d))/g,'.'); setForm(p => ({ ...p, contractSum: f })); const n = parseInt(f.replace(/\./g,'')||'0',10); setErrors(er => ({ ...er, contractSum: n < 100000 ? "Minimal summa: 100.000 so'm" : '' })) }}
+                    onChange={e => { const f = e.target.value.replace(/\D/g,'').replace(/\B(?=(\d{3})+(?!\d))/g,'.'); setForm(p => ({ ...p, contractSum: f })); const n = parseInt(f.replace(/\./g,'')||'0',10); setErrors(er => ({ ...er, contractSum: n < 100000 ? 'Minimal summa: 100.000 so\'m' : '' })) }}
                     placeholder="1.500.000" />
                   {errors.contractSum && <ErrorText>{errors.contractSum}</ErrorText>}
                   <HintText>Default: 1.500.000 so'm</HintText>
@@ -412,7 +446,29 @@ const RefreshBtn = styled.button`
   width: 36px; height: 36px; border-radius: 8px; cursor: pointer; font-size: 1.1rem;
   &:hover { color: #00e0ff; border-color: #00e0ff44; }
 `
-const GroupTabs = styled.div`display: flex; gap: 10px; flex-wrap: wrap;`
+const DesktopGroupTabs = styled.div`display: flex; gap: 10px; flex-wrap: wrap; @media (max-width: 768px) { display: none; }`
+const MobileGroupSelector = styled.div`display: none; @media (max-width: 768px) { display: block; }`
+const MobileGroupButton = styled.button`
+  width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 12px 16px; border-radius: 10px; font-size: 0.95rem; font-weight: 600; cursor: pointer;
+  background: #13161f; border: 1px solid #1e2235; color: #e2e8f0;
+`
+const MobileCountBadge = styled.span`
+  background: #2d3748; color: #94a3b8; padding: 2px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700;
+`
+const MobileGroupList = styled.div`
+  margin-top: 8px; background: #13161f; border: 1px solid #1e2235; border-radius: 10px; overflow: hidden;
+`
+const MobileGroupItem = styled.button`
+  width: 100%; text-align: left; display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 12px 16px; font-size: 0.9rem; font-weight: 500; cursor: pointer;
+  background: ${({ $active }) => $active ? '#00e0ff15' : 'transparent'};
+  border: none; border-bottom: 1px solid #1e2235;
+  color: ${({ $active }) => $active ? '#00e0ff' : '#e2e8f0'};
+  &:last-child { border-bottom: none; }
+  &:hover { background: ${({ $active }) => $active ? '#00e0ff15' : '#1a1d2e'}; }
+  span { background: ${({ $active }) => $active ? '#00e0ff30' : '#2d3748'}; color: ${({ $active }) => $active ? '#00e0ff' : '#94a3b8'}; padding: 2px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; }
+`
 const GroupTab = styled.button`
   display: flex; align-items: center; gap: 8px;
   padding: 9px 18px; border-radius: 10px;
@@ -470,8 +526,9 @@ const Th = styled.th`
   text-align: left; padding: 12px 14px; font-size: 0.78rem; color: #4a5568;
   text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #1e2235;
   white-space: nowrap; background: #0f1117; position: sticky; top: 0; z-index: 2;
+  &.hide-mobile { @media (max-width: 768px) { display: none; } }
 `
-const Td = styled.td`padding: 12px 14px; font-size: 0.88rem; color: #cbd5e0; border-bottom: 1px solid #1a1d2e; white-space: nowrap;`
+const Td = styled.td`padding: 12px 14px; font-size: 0.88rem; color: #cbd5e0; border-bottom: 1px solid #1a1d2e; white-space: nowrap; &.hide-mobile { @media (max-width: 768px) { display: none; } }`
 const StudentName = styled.div`display: flex; align-items: center; gap: 8px;`
 const Avatar = styled.div`
   width: 30px; height: 30px; border-radius: 50%; background: #1e2235;
@@ -492,21 +549,27 @@ const IconBtn = styled.button`
   font-size: 1rem; display: flex; align-items: center;
   &:hover { background: ${({ $color }) => $color}30; }
 `
-const EmptyRow = styled.div`text-align: center; padding: 40px; color: #4a5568; font-size: 0.9rem;`
+const EmptyRow = styled.div`text-align: center; padding: 48px; color: #4a5568; font-size: 0.9rem;`
 const EmptyState = styled.div`text-align: center; padding: 60px; color: #4a5568; font-size: 0.9rem; background: #13161f; border: 1px solid #1e2235; border-radius: 12px;`
 const CountBadge = styled.div`color: #4a5568; font-size: 0.82rem; text-align: right;`
 const ModalOverlay = styled.div`
   position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200;
   display: flex; align-items: center; justify-content: center; padding: 16px;
 `
-const Modal = styled.div`background: #13161f; border: 1px solid #2d3748; border-radius: 16px; width: 100%; max-width: 640px; max-height: 90vh; overflow-y: auto;`
+const Modal = styled.div`
+  background: #13161f; border: 1px solid #2d3748; border-radius: 16px;
+  width: 100%; max-width: 700px; max-height: 90vh; overflow-y: auto;
+`
 const ModalHeader = styled.div`
   display: flex; align-items: center; justify-content: space-between;
   padding: 20px 24px; border-bottom: 1px solid #1e2235;
   h3 { font-size: 1.1rem; font-weight: 600; color: #e2e8f0; }
 `
 const CloseBtn = styled.button`background: none; border: none; color: #4a5568; font-size: 1.3rem; cursor: pointer; &:hover { color: #e2e8f0; }`
-const FormGrid = styled.div`display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 24px; @media (max-width: 480px) { grid-template-columns: 1fr; }`
+const FormGrid = styled.div`
+  display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 24px;
+  @media (max-width: 600px) { grid-template-columns: 1fr; }
+`
 const FormGroup = styled.div`
   display: flex; flex-direction: column; gap: 6px;
   label { font-size: 0.82rem; color: #8892b0; font-weight: 500; }
