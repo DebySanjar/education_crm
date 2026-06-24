@@ -42,7 +42,6 @@ function AppRoutes() {
           <Route path="payments" element={<Payments />} />
           <Route path="expenses" element={<Expenses />} />
           <Route path="surveys" element={<Surveys />} />
-          <Route path="surveys/submissions" element={<Surveys />} />
           <Route path="statistics" element={<Statistics />} />
           <Route path="settings" element={<Settings />} />
         </Route>

@@ -352,12 +352,10 @@ const SubmitButton = styled.button`
 
 const SurveysPage = () => {
   const { surveys, addSurvey, deleteSurvey, submissions } = useData()
-  const navigate = useNavigate()
-  const location = useLocation()
 
   const [showAddModal, setShowAddModal] = useState(false)
   const [formData, setFormData] = useState({ name: '', description: '' })
-  
+  const [activeTab, setActiveTab] = useState('surveys') // 'surveys' or 'submissions'
   const [selectedSurveyId, setSelectedSurveyId] = useState(null)
 
   const copyLink = (surveyId) => {
@@ -398,8 +396,6 @@ const SurveysPage = () => {
     show: { opacity: 1, y: 0, transition: { duration: 0.4 } }
   }
 
-  const isSurveysActive = location.pathname === '/surveys'
-
   return (
     <Wrapper>
       <PageHeader>
@@ -415,13 +411,13 @@ const SurveysPage = () => {
 
       <div style={{ display: 'flex', gap: '8px', background: '#13161f', padding: '6px', borderRadius: '10px', border: '1px solid #1e2235' }}>
         <button
-          onClick={() => navigate('/surveys')}
+          onClick={() => setActiveTab('surveys')}
           style={{
             padding: '10px 20px',
             borderRadius: '8px',
             border: 'none',
-            background: isSurveysActive ? '#1a1d2e' : 'transparent',
-            color: isSurveysActive ? '#00e0ff' : '#94a3b8',
+            background: activeTab === 'surveys' ? '#1a1d2e' : 'transparent',
+            color: activeTab === 'surveys' ? '#00e0ff' : '#94a3b8',
             fontWeight: 600,
             cursor: 'pointer',
             transition: 'all 0.15s'
@@ -430,13 +426,13 @@ const SurveysPage = () => {
           Sorovnomalar
         </button>
         <button
-          onClick={() => navigate('/surveys/submissions')}
+          onClick={() => setActiveTab('submissions')}
           style={{
             padding: '10px 20px',
             borderRadius: '8px',
             border: 'none',
-            background: !isSurveysActive ? '#1a1d2e' : 'transparent',
-            color: !isSurveysActive ? '#00e0ff' : '#94a3b8',
+            background: activeTab === 'submissions' ? '#1a1d2e' : 'transparent',
+            color: activeTab === 'submissions' ? '#00e0ff' : '#94a3b8',
             fontWeight: 600,
             cursor: 'pointer',
             transition: 'all 0.15s'
@@ -446,7 +442,7 @@ const SurveysPage = () => {
         </button>
       </div>
 
-      {isSurveysActive ? (
+      {activeTab === 'surveys' ? (
         <CardsGrid as={motion.div} variants={containerVariants} initial="hidden" animate="show">
           {surveys.map(survey => (
             <Card key={survey.id} variants={itemVariants}>

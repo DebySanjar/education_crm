@@ -225,7 +225,6 @@ export default function Statistics() {
                 <KpiValue $color={k.color}>
                   <AnimatedNumber value={k.value} suffix={k.suffix} />
                 </KpiValue>
-                <KpiSub>{k.sub}</KpiSub>
                 <KpiBar>
                   <motion.div
                     style={{ background: k.color, height: '100%', borderRadius: 4, originX: 0 }}
