@@ -2,7 +2,6 @@ import React, { useState } from 'react'
 import styled from 'styled-components'
 import { useData } from '../context/DataContext'
 import { MdAdd, MdLink, MdDelete } from 'react-icons/md'
-import { motion } from 'framer-motion'
 
 const Wrapper = styled.div`
   display: flex;
@@ -56,7 +55,7 @@ const CardsGrid = styled.div`
   gap: 24px;
 `
 
-const Card = styled(motion.div)`
+const Card = styled.div`
   background: #0f1117;
   border: 2px solid #1e2235;
   border-radius: 12px;
@@ -356,16 +355,6 @@ const SurveysList = () => {
     setShowModal(false)
   }
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    show: { opacity: 1, transition: { staggerChildren: 0.1 } }
-  }
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0, transition: { duration: 0.4 } }
-  }
-
   return (
     <Wrapper>
       <PageHeader>
@@ -382,9 +371,9 @@ const SurveysList = () => {
       {surveys.length === 0 ? (
         <EmptyState>Hali sorovnoma yo'q. Birinchi sorovnomani yaratish uchun yuqoridagi tugmani bosing!</EmptyState>
       ) : (
-        <CardsGrid as={motion.div} variants={containerVariants} initial="hidden" animate="show">
+        <CardsGrid>
           {surveys.map(survey => (
-            <Card key={survey.id} variants={itemVariants}>
+            <Card key={survey.id}>
               <CardHeader>
                 <CardTitle>{survey.name}</CardTitle>
                 <CardActions>
@@ -424,7 +413,7 @@ const SurveysList = () => {
 
       {showModal && (
         <ModalOverlay onClick={(e) => e.target === e.target && setShowModal(false)}>
-          <Modal initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
+          <Modal onClick={(e) => e.stopPropagation()}>
             <ModalHeader>
               <ModalTitle>Yangi sorovnoma yaratish</ModalTitle>
               <CloseButton onClick={() => setShowModal(false)}>✕</CloseButton>
@@ -437,6 +426,7 @@ const SurveysList = () => {
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Masalan: 2024-yilgi qabul"
                   required
+                  autoFocus
                 />
               </FormGroup>
               <FormGroup>
