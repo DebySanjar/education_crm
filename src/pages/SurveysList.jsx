@@ -607,7 +607,7 @@ const SurveysList = () => {
                 onClick={handleDeleteSurvey}
                 disabled={deleting}
               >
-                {deleting ? 'O'chirilmoqda...' : 'O\'chirish'{'}'}
+                {deleting ? 'O\'chirilmoqda...' : 'O\'chirish'}
               </DialogConfirm>
             </DialogBtns>
           </Dialog>

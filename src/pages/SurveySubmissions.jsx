@@ -69,8 +69,8 @@ const Tab = styled.button`
   padding: 10px 16px;
   border-radius: 8px;
   border: none;
-  background: ${props => props.$active ? '#1a1d2e' : 'transparent';
-  color: ${props => props.$active ? '#00e0ff' : '#8892b0';
+  background: ${props => props.$active ? '#1a1d2e' : 'transparent'};
+  color: ${props => props.$active ? '#00e0ff' : '#8892b0'};
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s;
@@ -235,7 +235,7 @@ const SurveySubmissions = () => {
           <tbody>
             {searchedSubmissions.length === 0 ? (
               <tr>
-                <Td colSpan={headers.length + 2}>
+                <Td colSpan={headers.length + 3}>
                   <EmptyState>{searchQuery ? "Hech qanday ariza topilmadi" : "Hali ariza yo'q"}</EmptyState>
                 </Td>
               </tr>
@@ -255,12 +255,12 @@ const SurveySubmissions = () => {
                     </IconButton>
                   </Td>
                 </tr>
-              ))}
+              ))
             )}
           </tbody>
         </Table>
       </TableCard>
-
+      
       {/* Delete Submission Confirmation Dialog */}
       {showDeleteDialog && (
         <DialogOverlay onClick={() => !deleting && setShowDeleteDialog(false)}>
