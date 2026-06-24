@@ -2,6 +2,7 @@ import {
   collection,
   doc,
   getDocs,
+  getDoc,
   addDoc,
   updateDoc,
   deleteDoc,
@@ -20,7 +21,9 @@ const COLLECTIONS = {
   ATTENDANCE: 'attendance',
   EXPENSES:   'expenses',
   GROUPS:     'groups',
-  BALANCE:    'balance'
+  BALANCE:    'balance',
+  SURVEYS:    'surveys',
+  SUBMISSIONS: 'submissions'
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -278,7 +281,8 @@ export const clearAllData = async () => {
   try {
     const cols = [
       COLLECTIONS.STUDENTS, COLLECTIONS.PAYMENTS, COLLECTIONS.ATTENDANCE,
-      COLLECTIONS.EXPENSES,  COLLECTIONS.GROUPS,   COLLECTIONS.BALANCE
+      COLLECTIONS.EXPENSES,  COLLECTIONS.GROUPS,   COLLECTIONS.BALANCE,
+      COLLECTIONS.SURVEYS,  COLLECTIONS.SUBMISSIONS
     ]
     let totalDeleted = 0
     for (const name of cols) {
@@ -289,5 +293,120 @@ export const clearAllData = async () => {
     return { success: true, deletedCount: totalDeleted }
   } catch (error) {
     return { success: false, error: error.message }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// SURVEYS (Sorovnomalar)
+// ═══════════════════════════════════════════════════════════
+
+export const subscribeToSurveys = (callback) => {
+  try {
+    const q = query(collection(db, COLLECTIONS.SURVEYS), orderBy('createdAt', 'desc'))
+    return onSnapshot(q, (snapshot) => {
+      callback(snapshot.docs.map(d => ({ id: d.id, ...d.data() })))
+    }, () => { callback([]) })
+  } catch {
+    callback([])
+    return () => {}
+  }
+}
+
+export const addSurvey = async (surveyData) => {
+  try {
+    const docRef = await addDoc(collection(db, COLLECTIONS.SURVEYS), {
+      ...surveyData,
+      views: 0,
+      submissions: 0,
+      createdAt: serverTimestamp()
+    })
+    return { success: true, id: docRef.id }
+  } catch (error) {
+    return { success: false, error: error.message }
+  }
+}
+
+export const updateSurvey = async (id, data) => {
+  try {
+    await updateDoc(doc(db, COLLECTIONS.SURVEYS, id), {
+      ...data, updatedAt: serverTimestamp()
+    })
+    return { success: true }
+  } catch (error) {
+    return { success: false, error: error.message }
+  }
+}
+
+export const deleteSurvey = async (id) => {
+  try {
+    await deleteDoc(doc(db, COLLECTIONS.SURVEYS, id))
+    return { success: true }
+  } catch (error) {
+    return { success: false, error: error.message }
+  }
+}
+
+export const incrementSurveyViews = async (id) => {
+  try {
+    const surveyRef = doc(db, COLLECTIONS.SURVEYS, id)
+    const docSnap = await getDoc(surveyRef)
+    if (docSnap.exists()) {
+      await updateDoc(surveyRef, {
+        views: docSnap.data().views + 1
+      })
+    }
+    return { success: true }
+  } catch {
+    return { success: false }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// SUBMISSIONS (Arizachilar)
+// ═══════════════════════════════════════════════════════════
+
+export const subscribeToSubmissions = (callback) => {
+  try {
+    const q = query(collection(db, COLLECTIONS.SUBMISSIONS), orderBy('createdAt', 'desc'))
+    return onSnapshot(q, (snapshot) => {
+      callback(snapshot.docs.map(d => ({ id: d.id, ...d.data() })))
+    }, () => { callback([]) })
+  } catch {
+    callback([])
+    return () => {}
+  }
+}
+
+export const addSubmission = async (submissionData) => {
+  try {
+    const docRef = await addDoc(collection(db, COLLECTIONS.SUBMISSIONS), {
+      ...submissionData,
+      createdAt: serverTimestamp()
+    })
+    
+    // Sorovnoma submission countini oshirish
+    const surveyRef = doc(db, COLLECTIONS.SURVEYS, submissionData.surveyId)
+    const docSnap = await getDoc(surveyRef)
+    if (docSnap.exists()) {
+      await updateDoc(surveyRef, {
+        submissions: docSnap.data().submissions + 1
+      })
+    }
+    
+    return { success: true, id: docRef.id }
+  } catch (error) {
+    return { success: false, error: error.message }
+  }
+}
+
+export const getSurveyById = async (id) => {
+  try {
+    const docSnap = await getDoc(doc(db, COLLECTIONS.SURVEYS, id))
+    if (docSnap.exists()) {
+      return { success: true, data: { id: docSnap.id, ...docSnap.data() } }
+    }
+    return { success: false, data: null }
+  } catch (error) {
+    return { success: false, data: null, error: error.message }
   }
 }

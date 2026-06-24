@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext'
 import {
   MdDashboard, MdPeople, MdChecklist, MdPayment, MdBarChart, MdSettings,
   MdLogout, MdMenu, MdDirectionsCar, MdChevronLeft, MdClose, MdMoneyOff,
-  MdExpandMore, MdGroup,
+  MdExpandMore, MdGroup, MdDescription,
 } from 'react-icons/md'
 
 const navItems = [
@@ -125,6 +125,7 @@ export default function DashboardLayout() {
             { to: '/attendance', icon: <MdChecklist />, label: 'Davomat' },
             { to: '/payments', icon: <MdPayment />, label: "To'lovlar" },
             { to: '/expenses', icon: <MdMoneyOff />, label: 'Chiqimlar' },
+            { to: '/surveys', icon: <MdDescription />, label: 'Sorovnomalar' },
             { to: '/statistics', icon: <MdBarChart />, label: 'Statistika' },
           ].map(item => (
             <NavItem

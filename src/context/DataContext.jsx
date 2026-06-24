@@ -19,6 +19,12 @@ import {
   clearAllData as clearAllDataFS,
   subscribeToBalance,
   updateDailyBalance,
+  subscribeToSurveys,
+  subscribeToSubmissions,
+  addSurvey as addSurveyFS,
+  updateSurvey as updateSurveyFS,
+  deleteSurvey as deleteSurveyFS,
+  addSubmission as addSubmissionFS,
 } from '../services/firestoreService'
 import { useToast } from './ToastContext'
 
@@ -32,6 +38,8 @@ export function DataProvider({ children }) {
   const [expenses, setExpenses] = useState([])
   const [groups, setGroups] = useState([])
   const [balance, setBalance] = useState({})
+  const [surveys, setSurveys] = useState([])
+  const [submissions, setSubmissions] = useState([])
   const [loading, setLoading] = useState(true)
 
   // Qaysi collectionlar yuklandi — loading ni to'g'ri boshqarish uchun
@@ -66,6 +74,12 @@ export function DataProvider({ children }) {
     // Balance — real-time
     const unsubBalance = subscribeToBalance(setBalance)
 
+    // Surveys — real-time
+    const unsubSurveys = subscribeToSurveys(setSurveys)
+
+    // Submissions — real-time
+    const unsubSubmissions = subscribeToSubmissions(setSubmissions)
+
     // Attendance — getDocs (bir martalik, read tejash)
     fetchAttendance().then(res => setAttendance(res.data))
 
@@ -75,6 +89,8 @@ export function DataProvider({ children }) {
       unsubPayments()
       unsubExpenses()
       unsubBalance()
+      unsubSurveys()
+      unsubSubmissions()
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -206,6 +222,44 @@ export function DataProvider({ children }) {
     return result
   }
 
+  const addSurvey = async (survey) => {
+    const result = await addSurveyFS(survey)
+    if (result.success) {
+      toast.success("Sorovnoma muvaffaqiyatli qo'shildi.")
+    } else {
+      toast.error("Sorovnoma qo'shilmadi.")
+    }
+    return result
+  }
+
+  const updateSurvey = async (id, data) => {
+    const result = await updateSurveyFS(id, data)
+    if (result.success) {
+      toast.success("Sorovnoma yangilandi.")
+    } else {
+      toast.error("Sorovnoma yangilanmadi.")
+    }
+    return result
+  }
+
+  const deleteSurvey = async (id) => {
+    const result = await deleteSurveyFS(id)
+    if (result.success) {
+      toast.success("Sorovnoma o'chirildi.")
+    } else {
+      toast.error("Sorovnoma o'chirilmadi.")
+    }
+    return result
+  }
+
+  const addSubmission = async (submission) => {
+    const result = await addSubmissionFS(submission)
+    if (result.success) {
+      toast.success("Ariza muvaffaqiyatli yuborildi.")
+    }
+    return result
+  }
+
   const clearAllData = async () => {
     const result = await clearAllDataFS()
     if (result.success) {
@@ -238,7 +292,13 @@ export function DataProvider({ children }) {
       clearAllData,
       loading,
       balance,
-      updateDailyBalance
+      updateDailyBalance,
+      surveys,
+      addSurvey,
+      updateSurvey,
+      deleteSurvey,
+      submissions,
+      addSubmission
     }}>
       {children}
     </DataContext.Provider>

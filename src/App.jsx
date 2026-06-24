@@ -10,6 +10,8 @@ import Payments from './pages/Payments'
 import Expenses from './pages/Expenses'
 import Statistics from './pages/Statistics'
 import Settings from './pages/Settings'
+import Surveys from './pages/Surveys'
+import SurveyPage from './pages/SurveyPage'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { DataProvider } from './context/DataContext'
 import { ToastProvider } from './context/ToastContext'
@@ -27,6 +29,7 @@ function AppRoutes() {
       <OnboardingTour />
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/survey/:id" element={<SurveyPage />} />
         <Route
           path="/"
           element={
@@ -41,6 +44,7 @@ function AppRoutes() {
           <Route path="attendance" element={<Attendance />} />
           <Route path="payments" element={<Payments />} />
           <Route path="expenses" element={<Expenses />} />
+          <Route path="surveys" element={<Surveys />} />
           <Route path="statistics" element={<Statistics />} />
           <Route path="settings" element={<Settings />} />
         </Route>
