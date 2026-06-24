@@ -34,8 +34,7 @@ export default function Payments() {
   const { students, payments, addPayment, groups, loading } = useData()
 
   const [histSearch, setHistSearch] = useState('')
-  const [histDateFrom, setHistDateFrom] = useState('')
-  const [histDateTo, setHistDateTo] = useState('')
+  const [histDate, setHistDate] = useState('')
   const [histMinAmount, setHistMinAmount] = useState('')
   const [histMaxAmount, setHistMaxAmount] = useState('')
   const [debtSearch, setDebtSearch] = useState('')
@@ -191,12 +190,9 @@ export default function Payments() {
         let stuPayments = payments
           .filter(p => p.studentId === s.id)
         
-        // Filter by date range
-        if (histDateFrom) {
-          stuPayments = stuPayments.filter(p => p.date >= histDateFrom)
-        }
-        if (histDateTo) {
-          stuPayments = stuPayments.filter(p => p.date <= histDateTo)
+        // Filter by single date
+        if (histDate) {
+          stuPayments = stuPayments.filter(p => p.date === histDate)
         }
         
         // Filter by amount range
@@ -213,7 +209,7 @@ export default function Payments() {
         return { student: s, payments: stuPayments }
       })
       .filter(row => row.payments.length > 0)
-  }, [students, payments, histSearch, histDateFrom, histDateTo, histMinAmount, histMaxAmount])
+  }, [students, payments, histSearch, histDate, histMinAmount, histMaxAmount])
 
   const maxPayments = useMemo(
     () => studentPaymentRows.reduce((m, r) => Math.max(m, r.payments.length), 0),
@@ -406,22 +402,8 @@ export default function Payments() {
             </SearchBox>
             <input
               type="date"
-              value={histDateFrom}
-              onChange={e => setHistDateFrom(e.target.value)}
-              style={{
-                background: '#13161f',
-                border: '1px solid #2d3748',
-                borderRadius: '8px',
-                padding: '7px 12px',
-                color: '#e2e8f0',
-                outline: 'none',
-                fontSize: '0.88rem'
-              }}
-            />
-            <input
-              type="date"
-              value={histDateTo}
-              onChange={e => setHistDateTo(e.target.value)}
+              value={histDate}
+              onChange={e => setHistDate(e.target.value)}
               style={{
                 background: '#13161f',
                 border: '1px solid #2d3748',

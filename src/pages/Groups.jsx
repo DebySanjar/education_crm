@@ -160,10 +160,10 @@ export default function Groups() {
                     {isSuperAdmin() && (
                       <CardActions>
                         <ActionBtn $color="#00e0ff" onClick={() => openEdit(g)}>
-                          <MdEdit /> Tahrirlash
+                          <MdEdit />
                         </ActionBtn>
                         <ActionBtn $color="#ff6b6b" onClick={() => setDeleteConfirm(g)}>
-                          <MdDelete /> O'chirish
+                          <MdDelete />
                         </ActionBtn>
                       </CardActions>
                     )}
@@ -422,20 +422,19 @@ const FeatureValue = styled.span`
 `
 
 const CardActions = styled.div`
-  display:flex; gap:8px;
+  display:flex; gap:12px;
   padding-top:14px;
-  border-top:1px dashed #1e2235;
+  justify-content:flex-end;
 `
 
 const ActionBtn = styled.button`
-  flex:1; display:flex; align-items:center; justify-content:center; gap:6px;
-  background:${({ $color }) => $color + '14'};
-  border:1.5px solid ${({ $color }) => $color + '44'};
+  display:flex; align-items:center; justify-content:center;
+  background:transparent;
+  border:none;
   color:${({ $color }) => $color};
-  padding:8px; border-radius:6px; cursor:pointer; font-size:0.82rem; font-weight:600;
-  transition:background 0.18s, transform 0.15s;
-  &:hover { background:${({ $color }) => $color + '28'}; transform:translateY(-1px); }
-  &:active { transform:translateY(0); }
+  padding:6px; cursor:pointer; font-size:1.2rem;
+  transition:opacity 0.18s;
+  &:hover { opacity:0.8; }
 `
 
 const DotsPattern = styled.div`

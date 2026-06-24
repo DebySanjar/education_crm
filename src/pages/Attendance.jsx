@@ -243,8 +243,8 @@ export default function Attendance() {
             <tr>
               <Th style={{ width: 44 }}>#</Th>
               <Th>Ism-Sharif</Th>
-              <Th>Guruh</Th>
-              <Th>Telefon</Th>
+              <Th className="hide-mobile">Guruh</Th>
+              <Th className="hide-mobile">Telefon</Th>
               <Th style={{ textAlign: 'center' }}>Holat</Th>
               <Th style={{ textAlign: 'center', width: 80 }}>Belgilash</Th>
             </tr>
@@ -269,8 +269,8 @@ export default function Attendance() {
                       <span>{s.fullName}</span>
                     </StudentCell>
                   </Td>
-                  <Td><GroupBadge>{s.group}</GroupBadge></Td>
-                  <Td style={{ color: '#8892b0' }}>{s.phone}</Td>
+                  <Td className="hide-mobile"><GroupBadge>{s.group}</GroupBadge></Td>
+                  <Td className="hide-mobile" style={{ color: '#8892b0' }}>{s.phone}</Td>
                   <Td style={{ textAlign: 'center' }}>
                     <StatusBadge $isKeldi={isKeldi}>
                       {isKeldi ? '✓ Keldi' : '✗ Kelmadi'}
@@ -430,6 +430,7 @@ const Th = styled.th`
   text-align: left; padding: 12px 16px; font-size: 0.75rem; color: #4a5568;
   text-transform: uppercase; letter-spacing: 0.6px; border-bottom: 1px solid #1e2235;
   white-space: nowrap; background: #0f1117;
+  &.hide-mobile { @media (max-width: 768px) { display: none; } }
 `
 const TableRow = styled.tr`
   background: ${({ $isKeldi }) => $isKeldi ? 'rgba(16,185,129,0.03)' : 'rgba(255,107,107,0.03)'};
@@ -440,6 +441,7 @@ const TableRow = styled.tr`
 const Td = styled.td`
   padding: 12px 16px; font-size: 0.88rem; color: #cbd5e0;
   border-bottom: 1px solid #1a1d2e; white-space: nowrap;
+  &.hide-mobile { @media (max-width: 768px) { display: none; } }
 `
 const StudentCell = styled.div`display: flex; align-items: center; gap: 10px;`
 const AvatarCircle = styled.div`

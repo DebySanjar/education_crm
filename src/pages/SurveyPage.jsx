@@ -2,174 +2,291 @@ import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import styled from 'styled-components'
 import { getSurveyById, incrementSurveyViews, addSubmission as addSubmissionFS } from '../services/firestoreService'
-import { MdCheckCircle } from 'react-icons/md'
+import { MdCheckCircle, MdChevronRight } from 'react-icons/md'
 import { motion } from 'framer-motion'
+
+// Color palette (Google Forms inspired)
+const COLORS = {
+  primary: '#673ab7',
+  primaryLight: '#ede7f6',
+  textPrimary: '#202124',
+  textSecondary: '#5f6368',
+  border: '#dadce0',
+  background: '#f8f9fa',
+  white: '#ffffff',
+  error: '#d93025',
+  success: '#137333'
+}
 
 const PageWrapper = styled.div`
   min-height: 100vh;
-  background: linear-gradient(135deg, #0f1117 0%, #1a1d2e 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 40px 20px;
+  background: ${COLORS.background};
+  padding: 0;
+  margin: 0;
 `
 
-const Container = styled(motion.div)`
+const HeaderBanner = styled.div`
   width: 100%;
-  max-width: 600px;
-  background: #13161f;
-  border: 1px solid #2d3748;
-  border-radius: 20px;
-  padding: 40px;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+  height: 10px;
+  background: linear-gradient(90deg, ${COLORS.primary} 0%, #9c27b0 100%);
 `
 
-const Header = styled.div`
-  text-align: center;
-  margin-bottom: 36px;
+const Container = styled.div`
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 12px 16px 60px;
+  
+  @media (min-width: 768px) {
+    padding: 24px 0 80px;
+  }
+`
+
+const FormCard = styled(motion.div)`
+  background: ${COLORS.white};
+  border-radius: 8px;
+  box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);
+  overflow: hidden;
+  margin-bottom: 12px;
+`
+
+const HeaderSection = styled.div`
+  border-top: 8px solid ${COLORS.primary};
+  padding: 24px 24px 16px;
 `
 
 const Title = styled.h1`
   font-size: 2rem;
-  font-weight: 700;
-  color: #e2e8f0;
-  margin: 0 0 12px 0;
-  background: linear-gradient(135deg, #00e0ff 0%, #7c3aed 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  font-weight: 400;
+  color: ${COLORS.textPrimary};
+  margin: 0 0 8px 0;
+  line-height: 1.25;
+  
+  @media (min-width: 768px) {
+    font-size: 2.25rem;
+  }
 `
 
 const Description = styled.p`
+  font-size: 0.9375rem;
+  color: ${COLORS.textSecondary};
+  margin: 0 0 16px 0;
+  line-height: 1.5;
+`
+
+const RequiredNote = styled.div`
+  font-size: 0.875rem;
+  color: ${COLORS.error};
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 12px;
+`
+
+const FieldCard = styled.div`
+  padding: 24px;
+  border-top: 1px solid ${COLORS.border};
+`
+
+const FieldLabel = styled.label`
+  display: block;
   font-size: 1rem;
-  color: #94a3b8;
-  margin: 0;
-  line-height: 1.6;
+  color: ${COLORS.textPrimary};
+  margin-bottom: 16px;
+  line-height: 1.5;
 `
 
-const Form = styled.form`
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-`
-
-const FormGroup = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-`
-
-const Label = styled.label`
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: #cbd5e1;
+const RequiredAsterisk = styled.span`
+  color: ${COLORS.error};
+  margin-left: 4px;
 `
 
 const Input = styled.input`
-  padding: 14px 18px;
-  border-radius: 10px;
-  border: 1px solid #2d3748;
-  background: #0f1117;
-  color: #e2e8f0;
-  font-size: 1rem;
+  width: 100%;
+  padding: 8px 0;
+  border: none;
+  border-bottom: 1px solid ${COLORS.border};
+  background: transparent;
+  color: ${COLORS.textPrimary};
+  font-size: 0.9375rem;
   outline: none;
-  transition: all 0.15s;
+  transition: all 0.2s;
+  box-sizing: border-box;
+  
   &:focus {
-    border-color: #00e0ff;
-    box-shadow: 0 0 0 3px rgba(0, 224, 255, 0.1);
+    border-bottom: 2px solid ${COLORS.primary};
+  }
+  
+  &::placeholder {
+    color: ${COLORS.textSecondary};
+    opacity: 0.6;
   }
 `
 
 const Select = styled.select`
-  padding: 14px 18px;
-  border-radius: 10px;
-  border: 1px solid #2d3748;
-  background: #0f1117;
-  color: #e2e8f0;
-  font-size: 1rem;
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid ${COLORS.border};
+  border-radius: 4px;
+  background: ${COLORS.white};
+  color: ${COLORS.textPrimary};
+  font-size: 0.9375rem;
   outline: none;
-  transition: all 0.15s;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-height: 48px;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%235f6368' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 20px;
+  padding-right: 44px;
+  
   &:focus {
-    border-color: #00e0ff;
-    box-shadow: 0 0 0 3px rgba(0, 224, 255, 0.1);
+    border-color: ${COLORS.primary};
   }
 `
 
 const Textarea = styled.textarea`
-  padding: 14px 18px;
-  border-radius: 10px;
-  border: 1px solid #2d3748;
-  background: #0f1117;
-  color: #e2e8f0;
-  font-size: 1rem;
+  width: 100%;
+  padding: 8px 0;
+  border: none;
+  border-bottom: 1px solid ${COLORS.border};
+  background: transparent;
+  color: ${COLORS.textPrimary};
+  font-size: 0.9375rem;
   outline: none;
-  min-height: 120px;
+  min-height: 48px;
   resize: vertical;
-  transition: all 0.15s;
+  transition: all 0.2s;
+  box-sizing: border-box;
+  font-family: inherit;
+  
   &:focus {
-    border-color: #00e0ff;
-    box-shadow: 0 0 0 3px rgba(0, 224, 255, 0.1);
+    border-bottom: 2px solid ${COLORS.primary};
+  }
+  
+  &::placeholder {
+    color: ${COLORS.textSecondary};
+    opacity: 0.6;
+  }
+`
+
+const ButtonContainer = styled.div`
+  padding: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid ${COLORS.border};
+  
+  @media (max-width: 480px) {
+    flex-direction: column;
+    gap: 16px;
+    align-items: stretch;
   }
 `
 
 const Button = styled.button`
-  width: 100%;
-  padding: 14px;
-  border-radius: 10px;
+  padding: 10px 24px;
+  border-radius: 4px;
   border: none;
-  background: linear-gradient(135deg, #00e0ff 0%, #7c3aed 100%);
-  color: white;
-  font-size: 1.05rem;
-  font-weight: 700;
+  background: ${COLORS.primary};
+  color: ${COLORS.white};
+  font-size: 0.9375rem;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.15s;
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0, 224, 255, 0.4);
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  
+  &:hover:not(:disabled) {
+    background: #5e35b1;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12);
   }
+  
   &:disabled {
     opacity: 0.6;
     cursor: not-allowed;
-    transform: none;
   }
 `
 
-const SuccessScreen = styled(motion.div)`
+const FooterText = styled.div`
+  font-size: 0.8125rem;
+  color: ${COLORS.textSecondary};
   text-align: center;
-  padding: 40px 20px;
+  padding: 24px 16px;
+`
+
+const SuccessScreen = styled(motion.div)`
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 12px 16px;
+  
+  @media (min-width: 768px) {
+    padding: 24px 0;
+  }
+`
+
+const SuccessCard = styled(FormCard)`
+  padding: 48px 24px;
+  text-align: center;
 `
 
 const SuccessIcon = styled.div`
-  width: 80px;
-  height: 80px;
+  width: 72px;
+  height: 72px;
   border-radius: 50%;
-  background: rgba(16, 185, 129, 0.15);
-  border: 2px solid #10b981;
+  background: ${COLORS.success};
   display: flex;
   align-items: center;
   justify-content: center;
   margin: 0 auto 24px auto;
-  color: #10b981;
+  color: ${COLORS.white};
 `
 
 const SuccessTitle = styled.h2`
-  font-size: 1.6rem;
-  font-weight: 700;
-  color: #e2e8f0;
+  font-size: 1.5rem;
+  font-weight: 400;
+  color: ${COLORS.textPrimary};
   margin: 0 0 12px 0;
 `
 
 const SuccessText = styled.p`
-  font-size: 1rem;
-  color: #94a3b8;
+  font-size: 0.9375rem;
+  color: ${COLORS.textSecondary};
   margin: 0;
   line-height: 1.6;
 `
 
 const ErrorScreen = styled.div`
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 48px 24px;
   text-align: center;
-  padding: 40px 20px;
-  color: #ff6b6b;
+`
+
+const ErrorTitle = styled.h2`
+  font-size: 1.5rem;
+  font-weight: 400;
+  color: ${COLORS.error};
+  margin: 0 0 12px 0;
+`
+
+const ErrorText = styled.p`
+  font-size: 0.9375rem;
+  color: ${COLORS.textSecondary};
+  margin: 0;
+`
+
+const LoadingScreen = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  color: ${COLORS.textSecondary};
+  font-size: 0.9375rem;
 `
 
 const SurveyPage = () => {
@@ -232,6 +349,8 @@ const SurveyPage = () => {
     setSubmitting(false)
   }
 
+  const hasRequiredFields = survey?.fields?.some(f => f.required)
+
   const renderField = (field) => {
     switch (field.type) {
       case 'text':
@@ -240,7 +359,7 @@ const SurveyPage = () => {
             key={field.name}
             value={formData[field.name] || ''}
             onChange={e => handleChange(field.name, e.target.value)}
-            placeholder={`${field.label}ni kiriting`}
+            placeholder={`Javobingiz`}
             required={field.required}
           />
         )
@@ -251,7 +370,7 @@ const SurveyPage = () => {
             type="number"
             value={formData[field.name] || ''}
             onChange={e => handleChange(field.name, e.target.value)}
-            placeholder={`${field.label}ni kiriting`}
+            placeholder={`Javobingiz`}
             required={field.required}
           />
         )
@@ -274,7 +393,7 @@ const SurveyPage = () => {
             onChange={e => handleChange(field.name, e.target.value)}
             required={field.required}
           >
-            <option value="">{field.label}ni tanlang</option>
+            <option value="">Tanlang</option>
             {field.options?.map((option, idx) => (
               <option key={idx} value={option}>{option}</option>
             ))}
@@ -286,7 +405,7 @@ const SurveyPage = () => {
             key={field.name}
             value={formData[field.name] || ''}
             onChange={e => handleChange(field.name, e.target.value)}
-            placeholder={`${field.label}ni kiriting`}
+            placeholder={`Javobingiz`}
             required={field.required}
           />
         )
@@ -296,22 +415,17 @@ const SurveyPage = () => {
   }
 
   if (loading) {
-    return (
-      <PageWrapper>
-        <div style={{ color: '#94a3b8', textAlign: 'center' }}>Yuklanmoqda...</div>
-      </PageWrapper>
-    )
+    return <LoadingScreen>Yuklanmoqda...</LoadingScreen>
   }
 
   if (error) {
     return (
       <PageWrapper>
-        <Container>
-          <ErrorScreen>
-            <h2>Xatolik</h2>
-            <p>{error}</p>
-          </ErrorScreen>
-        </Container>
+        <HeaderBanner />
+        <ErrorScreen>
+          <ErrorTitle>Xatolik</ErrorTitle>
+          <ErrorText>{error}</ErrorText>
+        </ErrorScreen>
       </PageWrapper>
     )
   }
@@ -319,17 +433,24 @@ const SurveyPage = () => {
   if (submitted) {
     return (
       <PageWrapper>
-        <SuccessScreen
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-        >
-          <SuccessIcon>
-            <MdCheckCircle size={48} />
-          </SuccessIcon>
-          <SuccessTitle>Muvaffaqiyatli!</SuccessTitle>
-          <SuccessText>
-            Arizangiz qabul qilindi. Tez orada siz bilan bog'lanamiz.
-          </SuccessText>
+        <HeaderBanner />
+        <SuccessScreen>
+          <SuccessCard
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3 }}
+          >
+            <SuccessIcon>
+              <MdCheckCircle size={40} />
+            </SuccessIcon>
+            <SuccessTitle>Javobingiz qabul qilindi</SuccessTitle>
+            <SuccessText>
+              Arizangiz muvaffaqiyatli yuborildi. Tez orada siz bilan bog'lanamiz.
+            </SuccessText>
+          </SuccessCard>
+          <FooterText>
+            Google Forms shaklida yaratilgan
+          </FooterText>
         </SuccessScreen>
       </PageWrapper>
     )
@@ -337,27 +458,47 @@ const SurveyPage = () => {
 
   return (
     <PageWrapper>
-      <Container
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-      >
-        <Header>
-          <Title>{survey.name}</Title>
-          {survey.description && <Description>{survey.description}</Description>}
-        </Header>
-        <Form onSubmit={handleSubmit}>
-          {survey.fields?.map(field => (
-            <FormGroup key={field.name}>
-              <Label>
-                {field.label} {field.required ? '*' : ''}
-              </Label>
-              {renderField(field)}
-            </FormGroup>
-          ))}
-          <Button type="submit" disabled={submitting}>
-            {submitting ? 'Yuborilmoqda...' : 'Yuborish'}
-          </Button>
-        </Form>
+      <HeaderBanner />
+      <Container>
+        <FormCard
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          <HeaderSection>
+            <Title>{survey.name}</Title>
+            {survey.description && <Description>{survey.description}</Description>}
+            {hasRequiredFields && (
+              <RequiredNote>
+                <span>*</span> Majburiy savollar
+              </RequiredNote>
+            )}
+          </HeaderSection>
+
+          <form onSubmit={handleSubmit}>
+            {survey.fields?.map(field => (
+              <FieldCard key={field.name}>
+                <FieldLabel>
+                  {field.label}
+                  {field.required && <RequiredAsterisk>*</RequiredAsterisk>}
+                </FieldLabel>
+                {renderField(field)}
+              </FieldCard>
+            ))}
+
+            <ButtonContainer>
+              <div></div>
+              <Button type="submit" disabled={submitting}>
+                {submitting ? 'Yuborilmoqda...' : 'Yuborish'}
+                {!submitting && <MdChevronRight size={20} />}
+              </Button>
+            </ButtonContainer>
+          </form>
+        </FormCard>
+
+        <FooterText>
+          Hech qanday shaxsiy ma'lumotlar to'planmaydi
+        </FooterText>
       </Container>
     </PageWrapper>
   )
