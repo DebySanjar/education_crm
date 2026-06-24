@@ -80,6 +80,38 @@ const Input = styled.input`
   }
 `
 
+const Select = styled.select`
+  padding: 14px 18px;
+  border-radius: 10px;
+  border: 1px solid #2d3748;
+  background: #0f1117;
+  color: #e2e8f0;
+  font-size: 1rem;
+  outline: none;
+  transition: all 0.15s;
+  &:focus {
+    border-color: #00e0ff;
+    box-shadow: 0 0 0 3px rgba(0, 224, 255, 0.1);
+  }
+`
+
+const Textarea = styled.textarea`
+  padding: 14px 18px;
+  border-radius: 10px;
+  border: 1px solid #2d3748;
+  background: #0f1117;
+  color: #e2e8f0;
+  font-size: 1rem;
+  outline: none;
+  min-height: 120px;
+  resize: vertical;
+  transition: all 0.15s;
+  &:focus {
+    border-color: #00e0ff;
+    box-shadow: 0 0 0 3px rgba(0, 224, 255, 0.1);
+  }
+`
+
 const Button = styled.button`
   width: 100%;
   padding: 14px;
@@ -147,7 +179,7 @@ const SurveyPage = () => {
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
-  const [formData, setFormData] = useState({ firstName: '', lastName: '', phone: '' })
+  const [formData, setFormData] = useState({})
   const [error, setError] = useState(null)
 
   useEffect(() => {
@@ -164,6 +196,12 @@ const SurveyPage = () => {
       const result = await getSurveyById(id)
       if (result.success && result.data) {
         setSurvey(result.data)
+        // Initialize form data based on survey fields
+        const initialData = {}
+        result.data.fields?.forEach(field => {
+          initialData[field.name] = ''
+        })
+        setFormData(initialData)
       } else {
         setError('Sorovnoma topilmadi yoki o\'chirilgan')
       }
@@ -171,6 +209,10 @@ const SurveyPage = () => {
     }
     loadSurvey()
   }, [id])
+
+  const handleChange = (fieldName, value) => {
+    setFormData(prev => ({ ...prev, [fieldName]: value }))
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -188,6 +230,69 @@ const SurveyPage = () => {
       alert('Xatolik yuz berdi. Iltimos, qayta urinib ko\'ring.')
     }
     setSubmitting(false)
+  }
+
+  const renderField = (field) => {
+    switch (field.type) {
+      case 'text':
+        return (
+          <Input
+            key={field.name}
+            value={formData[field.name] || ''}
+            onChange={e => handleChange(field.name, e.target.value)}
+            placeholder={`${field.label}ni kiriting`}
+            required={field.required}
+          />
+        )
+      case 'number':
+        return (
+          <Input
+            key={field.name}
+            type="number"
+            value={formData[field.name] || ''}
+            onChange={e => handleChange(field.name, e.target.value)}
+            placeholder={`${field.label}ni kiriting`}
+            required={field.required}
+          />
+        )
+      case 'tel':
+        return (
+          <Input
+            key={field.name}
+            type="tel"
+            value={formData[field.name] || ''}
+            onChange={e => handleChange(field.name, e.target.value)}
+            placeholder="+998 90 123 45 67"
+            required={field.required}
+          />
+        )
+      case 'select':
+        return (
+          <Select
+            key={field.name}
+            value={formData[field.name] || ''}
+            onChange={e => handleChange(field.name, e.target.value)}
+            required={field.required}
+          >
+            <option value="">{field.label}ni tanlang</option>
+            {field.options?.map((option, idx) => (
+              <option key={idx} value={option}>{option}</option>
+            ))}
+          </Select>
+        )
+      case 'textarea':
+        return (
+          <Textarea
+            key={field.name}
+            value={formData[field.name] || ''}
+            onChange={e => handleChange(field.name, e.target.value)}
+            placeholder={`${field.label}ni kiriting`}
+            required={field.required}
+          />
+        )
+      default:
+        return null
+    }
   }
 
   if (loading) {
@@ -241,34 +346,14 @@ const SurveyPage = () => {
           {survey.description && <Description>{survey.description}</Description>}
         </Header>
         <Form onSubmit={handleSubmit}>
-          <FormGroup>
-            <Label>Ism *</Label>
-            <Input
-              value={formData.firstName}
-              onChange={e => setFormData({ ...formData, firstName: e.target.value })}
-              placeholder="Ismingizni kiriting"
-              required
-            />
-          </FormGroup>
-          <FormGroup>
-            <Label>Familiya *</Label>
-            <Input
-              value={formData.lastName}
-              onChange={e => setFormData({ ...formData, lastName: e.target.value })}
-              placeholder="Familiyangizni kiriting"
-              required
-            />
-          </FormGroup>
-          <FormGroup>
-            <Label>Telefon *</Label>
-            <Input
-              type="tel"
-              value={formData.phone}
-              onChange={e => setFormData({ ...formData, phone: e.target.value })}
-              placeholder="+998 90 123 45 67"
-              required
-            />
-          </FormGroup>
+          {survey.fields?.map(field => (
+            <FormGroup key={field.name}>
+              <Label>
+                {field.label} {field.required ? '*' : ''}
+              </Label>
+              {renderField(field)}
+            </FormGroup>
+          ))}
           <Button type="submit" disabled={submitting}>
             {submitting ? 'Yuborilmoqda...' : 'Yuborish'}
           </Button>

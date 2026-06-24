@@ -324,16 +324,79 @@ const EmptyState = styled.div`
   font-size: 0.95rem;
 `
 
+const FieldSelector = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+`
+
+const FieldItem = styled.label`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: #0f1117;
+  border: 1px solid #2d3748;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+  user-select: none;
+
+  &:hover {
+    border-color: #4a5568;
+  }
+
+  input {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+  }
+
+  span {
+    font-size: 0.9rem;
+    color: #cbd5e1;
+  }
+`
+
+const SectionTitle = styled.div`
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 8px;
+  margin-bottom: 6px;
+`
+
+// Available field config
+const availableFields = [
+  { id: 'fullName', name: 'fullName', label: 'Ism va familiya', type: 'text', required: true },
+  { id: 'age', name: 'age', label: 'Yosh', type: 'number', required: false },
+  { id: 'phone', name: 'phone', label: 'Telefon raqam', type: 'tel', required: true },
+  { id: 'address', name: 'address', label: 'Manzil', type: 'text', required: false },
+  { id: 'gender', name: 'gender', label: 'Jinsi', type: 'select', options: ['Erkak', 'Ayol'], required: false },
+  { id: 'additionalQuestions', name: 'additionalQuestions', label: 'Qo\'shimcha savollar', type: 'textarea', required: false }
+]
+
 const SurveysList = () => {
   const { surveys, addSurvey, deleteSurvey } = useData()
   const [showModal, setShowModal] = useState(false)
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
+  const [selectedFields, setSelectedFields] = useState(['fullName', 'phone']) // Default fields
 
   const copyLink = (surveyId) => {
     const link = `${window.location.origin}/survey/${surveyId}`
     navigator.clipboard.writeText(link)
     alert('Link nusxalandi!')
+  }
+
+  const toggleField = (fieldId) => {
+    setSelectedFields(prev => 
+      prev.includes(fieldId) 
+        ? prev.filter(id => id !== fieldId) 
+        : [...prev, fieldId]
+    )
   }
 
   const handleSubmit = async (e) => {
@@ -343,15 +406,12 @@ const SurveysList = () => {
     await addSurvey({
       name,
       description,
-      fields: [
-        { name: 'firstName', label: 'Ism', type: 'text', required: true },
-        { name: 'lastName', label: 'Familiya', type: 'text', required: true },
-        { name: 'phone', label: 'Telefon', type: 'tel', required: true }
-      ]
+      fields: availableFields.filter(f => selectedFields.includes(f.id))
     })
 
     setName('')
     setDescription('')
+    setSelectedFields(['fullName', 'phone'])
     setShowModal(false)
   }
 
@@ -437,6 +497,23 @@ const SurveysList = () => {
                   placeholder="Sorovnoma haqida qisqacha ma'lumot"
                 />
               </FormGroup>
+
+              <SectionTitle>Forma maydonlarini tanlang</SectionTitle>
+              <FieldSelector>
+                {availableFields.map(field => (
+                  <FieldItem key={field.id}>
+                    <input
+                      type="checkbox"
+                      checked={selectedFields.includes(field.id)}
+                      onChange={() => toggleField(field.id)}
+                    />
+                    <span>
+                      {field.label} {field.required ? '(Majburiy)' : ''}
+                    </span>
+                  </FieldItem>
+                ))}
+              </FieldSelector>
+
               <ModalActions>
                 <CancelButton type="button" onClick={() => setShowModal(false)}>
                   Bekor qilish

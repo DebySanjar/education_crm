@@ -98,6 +98,21 @@ const SurveySubmissions = () => {
     ? submissions.filter(s => s.surveyId === selectedSurveyId)
     : submissions
 
+  // Get all unique keys from submissions for table headers
+  const getTableHeaders = () => {
+    const keys = new Set()
+    filteredSubmissions.forEach(sub => {
+      Object.keys(sub).forEach(key => {
+        if (key !== 'id' && key !== 'surveyId' && key !== 'surveyName' && key !== 'createdAt') {
+          keys.add(key)
+        }
+      })
+    })
+    return Array.from(keys)
+  }
+
+  const headers = getTableHeaders()
+
   return (
     <Wrapper>
       <PageHeader>
@@ -128,9 +143,9 @@ const SurveySubmissions = () => {
         <Table>
           <thead>
             <tr>
-              <Th>Ism</Th>
-              <Th>Familiya</Th>
-              <Th>Telefon</Th>
+              {headers.map(key => (
+                <Th key={key}>{key.charAt(0).toUpperCase() + key.slice(1)}</Th>
+              ))}
               <Th>Sorovnoma</Th>
               <Th>Vaqt</Th>
             </tr>
@@ -138,16 +153,16 @@ const SurveySubmissions = () => {
           <tbody>
             {filteredSubmissions.length === 0 ? (
               <tr>
-                <Td colSpan="5">
+                <Td colSpan={headers.length + 2}>
                   <EmptyState>Hali ariza yo'q</EmptyState>
                 </Td>
               </tr>
             ) : (
               filteredSubmissions.map(submission => (
                 <tr key={submission.id}>
-                  <Td>{submission.firstName}</Td>
-                  <Td>{submission.lastName}</Td>
-                  <Td>{submission.phone}</Td>
+                  {headers.map(key => (
+                    <Td key={key}>{submission[key] || '-'}</Td>
+                  ))}
                   <Td>{surveys.find(s => s.id === submission.surveyId)?.name || 'Noma\'lum'}</Td>
                   <Td>
                     {submission.createdAt?.toDate?.().toLocaleString('uz-UZ') || 'Noma\'lum'}
