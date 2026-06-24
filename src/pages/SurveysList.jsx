@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import styled from 'styled-components'
 import { useData } from '../context/DataContext'
 import { useToast } from '../context/ToastContext'
-import { MdAdd, MdLink, MdDelete } from 'react-icons/md'
+import { MdAdd, MdLink, MdDelete, MdVisibility } from 'react-icons/md'
 
 const Wrapper = styled.div`
   display: flex;
@@ -441,6 +441,11 @@ const SurveysList = () => {
     toast.success('Link nusxalandi!')
   }
 
+  const openSurvey = (surveyId) => {
+    const link = `${window.location.origin}/survey/${surveyId}`
+    window.open(link, '_blank')
+  }
+
   const toggleField = (fieldId) => {
     setSelectedFields(prev => 
       prev.includes(fieldId) 
@@ -496,6 +501,9 @@ const SurveysList = () => {
               <CardHeader>
                 <CardTitle>{survey.name}</CardTitle>
                 <CardActions>
+                  <IconButton onClick={() => openSurvey(survey.id)} title="Formani ko'rish">
+                    <MdVisibility size={16} />
+                  </IconButton>
                   <IconButton onClick={() => copyLink(survey.id)} title="Link nusxalash">
                     <MdLink size={16} />
                   </IconButton>
