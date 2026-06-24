@@ -9,7 +9,6 @@ import {
   MdTimer,
   MdDeleteForever,
   MdWarning,
-  MdKeyboardArrowRight,
   MdPowerSettingsNew,
   MdDashboard
 } from 'react-icons/md'
@@ -17,17 +16,15 @@ import {
 const Wrapper = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 24px;
-  padding-bottom: 20px;
+  gap: 20px;
 `
 
 const PageHeader = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  margin-bottom: 12px;
+  gap: 4px;
   h2 {
-    font-size: 1.5rem;
+    font-size: 1.4rem;
     font-weight: 700;
     color: #e2e8f0;
     margin: 0;
@@ -42,176 +39,99 @@ const PageHeader = styled.div`
 const Section = styled.div`
   background: #13161f;
   border: 1px solid #1e2235;
-  border-radius: 14px;
+  border-radius: 12px;
   overflow: hidden;
-  transition: box-shadow 0.2s;
-  &:hover {
-    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-  }
 `
 
 const SectionHeader = styled.div`
+  padding: 16px 20px;
+  border-bottom: 1px solid #1e2235;
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 16px 20px;
-  border-bottom: 1px solid #1e2235;
-  background: #0f1117;
   svg {
-    font-size: 1.3rem;
     color: #00e0ff;
+    font-size: 1.2rem;
   }
-`
-
-const SectionTitle = styled.div`
-  font-size: 1rem;
-  font-weight: 700;
-  color: #e2e8f0;
+  h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #e2e8f0;
+    margin: 0;
+  }
 `
 
 const SectionBody = styled.div`
   padding: 20px;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 16px;
 `
 
-const FormRow = styled.div`
+const SettingRow = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 12px;
-`
-
-const Label = styled.label`
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #cbd5e1;
-  flex: 1;
-  min-width: 160px;
+  label {
+    font-size: 0.9rem;
+    color: #cbd5e1;
+    font-weight: 500;
+  }
 `
 
 const Input = styled.input`
   background: #0f1117;
   border: 1px solid #2d3748;
-  border-radius: 10px;
+  border-radius: 8px;
   padding: 10px 14px;
   color: #e2e8f0;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   outline: none;
   width: 140px;
-  transition: all 0.15s;
   &:focus {
     border-color: #00e0ff;
-    box-shadow: 0 0 0 3px rgba(0, 224, 255, 0.1);
   }
 `
 
-const ToggleWrapper = styled.button`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px;
-  border-radius: 24px;
-  background: ${props => props.$active ? '#00e0ff22' : '#2d3748'};
-  border: none;
-  cursor: pointer;
-  transition: all 0.2s;
-`
-
-const ToggleDot = styled.div`
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: ${props => props.$active ? '#00e0ff' : '#64748b'};
-  transform: translateX(${props => props.$active ? '28px' : '0'});
-  transition: all 0.2s;
-  box-shadow: ${props => props.$active ? '0 0 12px rgba(0,224,255,0.4)' : 'none'};
-`
-
-const ToggleTrack = styled.div`
+const ToggleButton = styled.button`
   width: 56px;
   height: 32px;
   border-radius: 16px;
-  background: transparent;
+  background: ${props => props.$active ? '#00e0ff' : '#2d3748'};
+  border: none;
+  cursor: pointer;
   position: relative;
-`
-
-const WarningBox = styled.div`
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  background: rgba(245, 158, 11, 0.08);
-  border: 1px solid rgba(245, 158, 11, 0.3);
-  border-radius: 12px;
-  padding: 16px;
-  svg {
-    color: #f59e0b;
-    font-size: 1.5rem;
-    flex-shrink: 0;
+  transition: background 0.2s;
+  &::after {
+    content: '';
+    position: absolute;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: #fff;
+    top: 3px;
+    left: ${props => props.$active ? '27px' : '3px'};
+    transition: left 0.2s;
   }
 `
 
-const WarningTitle = styled.div`
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: #f59e0b;
-  margin-bottom: 4px;
-`
-
-const WarningText = styled.div`
-  font-size: 0.85rem;
-  color: #8892b0;
-  line-height: 1.5;
-`
-
-const DangerButton = styled.button`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-  padding: 12px 20px;
-  border-radius: 10px;
-  border: 1px solid rgba(255, 107, 107, 0.4);
-  background: rgba(255, 107, 107, 0.1);
-  color: #ff6b6b;
+const Button = styled.button`
+  padding: 12px 24px;
+  border-radius: 8px;
+  border: 1px solid ${props => props.$success ? '#10b981' : '#00e0ff'};
+  background: transparent;
+  color: ${props => props.$success ? '#10b981' : '#00e0ff'};
   font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.15s;
-  &:hover {
-    background: rgba(255, 107, 107, 0.2);
-    border-color: #ff6b6b;
-  }
-  svg {
-    font-size: 1.1rem;
-  }
-`
-
-const SaveRow = styled.div`
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 8px;
-`
-
-const SaveButton = styled.button`
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 12px 28px;
-  border-radius: 10px;
-  border: none;
-  background: ${props => props.$success ? '#10b98122' : '#00e0ff22'};
-  color: ${props => props.$success ? '#10b981' : '#00e0ff'};
-  font-size: 0.95rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.15s;
-  border: 1px solid ${props => props.$success ? '#10b98144' : '#00e0ff44'};
-  &:hover:not(:disabled) {
-    background: ${props => props.$success ? '#10b98133' : '#00e0ff33'};
+  align-self: flex-end;
+  &:hover {
+    background: ${props => props.$success ? 'rgba(16, 185, 129, 0.08)' : 'rgba(0, 224, 255, 0.08)'};
   }
   &:disabled {
     opacity: 0.5;
@@ -222,30 +142,52 @@ const SaveButton = styled.button`
   }
 `
 
-const DangerZone = styled.div`
-  margin-top: 8px;
-`
-
-const LogoutButton = styled.button`
-  display: flex;
-  align-items: center;
-  gap: 10px;
+const DangerButton = styled.button`
   width: 100%;
-  padding: 14px 16px;
-  background: #13161f;
-  border: 1px solid #1e2235;
-  border-radius: 12px;
+  padding: 12px 20px;
+  border-radius: 8px;
+  border: 1px solid #ff6b6b;
+  background: transparent;
   color: #ff6b6b;
   font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   &:hover {
-    background: rgba(255,107,107,0.08);
-    border-color: rgba(255,107,107,0.4);
+    background: rgba(255, 107, 107, 0.08);
   }
   svg {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
+  }
+`
+
+const WarningBox = styled.div`
+  background: rgba(245, 158, 11, 0.06);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  border-radius: 10px;
+  padding: 14px 16px;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  svg {
+    color: #f59e0b;
+    font-size: 1.3rem;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .title {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #f59e0b;
+    margin-bottom: 4px;
+  }
+  .text {
+    font-size: 0.85rem;
+    color: #8892b0;
+    line-height: 1.5;
   }
 `
 
@@ -277,7 +219,7 @@ export default function Settings() {
 
   const handleClearData = async () => {
     setClearing(true)
-    const result = await clearAllData()
+    await clearAllData()
     setClearing(false)
     setShowClearDialog(false)
   }
@@ -297,51 +239,42 @@ export default function Settings() {
       <Section>
         <SectionHeader>
           <MdTimer />
-          <SectionTitle>Avtomatik bloklash</SectionTitle>
+          <h3>Avtomatik bloklash</h3>
         </SectionHeader>
         <SectionBody>
-          <FormRow>
-            <Label>Faollashtirish</Label>
-            <ToggleWrapper
+          <SettingRow>
+            <label>Faollashtirish</label>
+            <ToggleButton
               $active={autoLogoutEnabled}
               onClick={() => setAutoLogoutEnabled(!autoLogoutEnabled)}
-            >
-              <ToggleTrack>
-                <ToggleDot $active={autoLogoutEnabled} />
-              </ToggleTrack>
-            </ToggleWrapper>
-          </FormRow>
+            />
+          </SettingRow>
 
           {autoLogoutEnabled && (
-            <FormRow>
-              <Label>Bloklash vaqti (daqiqa)</Label>
+            <SettingRow>
+              <label>Bloklash vaqti (daqiqa)</label>
               <Input
                 type="number"
                 min="1"
                 value={tempAutoLogoutMinutes}
                 onChange={(e) => setTempAutoLogoutMinutes(e.target.value)}
               />
-            </FormRow>
+            </SettingRow>
           )}
 
-          <SaveRow>
-            <SaveButton
-              $success={saveSuccess}
-              onClick={handleSave}
-            >
-              {saveSuccess ? (
-                <>
-                  <MdCheckCircle />
-                  Saqlandi
-                </>
-              ) : (
-                <>
-                  <MdSave />
-                  Saqlash
-                </>
-              )}
-            </SaveButton>
-          </SaveRow>
+          <Button onClick={handleSave} $success={saveSuccess}>
+            {saveSuccess ? (
+              <>
+                <MdCheckCircle />
+                Saqlandi
+              </>
+            ) : (
+              <>
+                <MdSave />
+                Saqlash
+              </>
+            )}
+          </Button>
         </SectionBody>
       </Section>
 
@@ -349,26 +282,24 @@ export default function Settings() {
         <Section>
           <SectionHeader>
             <MdDeleteForever style={{ color: '#ff6b6b' }} />
-            <SectionTitle>Ma'lumotlarni tozalash</SectionTitle>
+            <h3>Ma'lumotlarni tozalash</h3>
           </SectionHeader>
           <SectionBody>
             <WarningBox>
               <MdWarning />
               <div>
-                <WarningTitle>Diqqat!</WarningTitle>
-                <WarningText>
+                <div className="title">Diqqat!</div>
+                <div className="text">
                   Bu amal barcha ma'lumotlarni (o'quvchilar, to'lovlar, davomat, chiqimlar) 
                   butunlay o'chiradi. Bu amalni qaytarib bo'lmaydi!
-                </WarningText>
+                </div>
               </div>
             </WarningBox>
 
-            <DangerZone>
-              <DangerButton onClick={() => setShowClearDialog(true)}>
-                <MdDeleteForever />
-                Barcha ma'lumotlarni tozalash
-              </DangerButton>
-            </DangerZone>
+            <DangerButton onClick={() => setShowClearDialog(true)}>
+              <MdDeleteForever />
+              Barcha ma'lumotlarni tozalash
+            </DangerButton>
           </SectionBody>
         </Section>
       )}
@@ -376,13 +307,13 @@ export default function Settings() {
       <Section>
         <SectionHeader>
           <MdDashboard />
-          <SectionTitle>Hisobdan chiqish</SectionTitle>
+          <h3>Hisobdan chiqish</h3>
         </SectionHeader>
         <SectionBody>
-          <LogoutButton onClick={() => setShowLogoutDialog(true)}>
+          <DangerButton onClick={() => setShowLogoutDialog(true)}>
             <MdPowerSettingsNew />
             Tizimdan chiqish
-          </LogoutButton>
+          </DangerButton>
         </SectionBody>
       </Section>
 
@@ -448,7 +379,6 @@ const DialogOverlay = styled.div`
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(2px);
   z-index: 600;
   display: flex;
   align-items: center;
@@ -458,20 +388,20 @@ const DialogOverlay = styled.div`
 
 const Dialog = styled.div`
   background: #1c1f2e;
-  border-radius: 16px;
+  border-radius: 12px;
   width: 100%;
   max-width: 340px;
   overflow: hidden;
 `
 
 const DialogIcon = styled.div`
-  font-size: 2.5rem;
+  font-size: 2.2rem;
   color: #ff6b6b;
-  background: rgba(255,107,107,0.12);
-  border: 1px solid rgba(255,107,107,0.25);
+  background: rgba(255,107,107,0.1);
+  border: 1px solid rgba(255,107,107,0.2);
   border-radius: 50%;
-  width: 70px;
-  height: 70px;
+  width: 64px;
+  height: 64px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -479,7 +409,7 @@ const DialogIcon = styled.div`
 `
 
 const DialogTitle = styled.div`
-  font-size: 1.05rem;
+  font-size: 1rem;
   font-weight: 700;
   color: #e2e8f0;
   text-align: center;
@@ -487,7 +417,7 @@ const DialogTitle = styled.div`
 `
 
 const DialogText = styled.div`
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   color: #8892b0;
   text-align: center;
   padding: 0 20px 16px;
@@ -510,12 +440,12 @@ const DialogCancel = styled.button`
   background: transparent;
   border: none;
   color: #00e0ff;
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 500;
   cursor: pointer;
   transition: background 0.15s;
   &:hover:not(:disabled) {
-    background: rgba(0,224,255,0.08);
+    background: rgba(0,224,255,0.06);
   }
   &:disabled {
     opacity: 0.5;
@@ -529,12 +459,12 @@ const DialogConfirm = styled.button`
   background: transparent;
   border: none;
   color: #ff6b6b;
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 700;
   cursor: pointer;
   transition: background 0.15s;
   &:hover:not(:disabled) {
-    background: rgba(255,107,107,0.08);
+    background: rgba(255,107,107,0.06);
   }
   &:disabled {
     opacity: 0.5;

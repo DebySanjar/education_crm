@@ -34,7 +34,12 @@ export default function Payments() {
   const { students, payments, addPayment, groups, loading } = useData()
 
   const [histSearch, setHistSearch] = useState('')
+  const [histDateFrom, setHistDateFrom] = useState('')
+  const [histDateTo, setHistDateTo] = useState('')
+  const [histMinAmount, setHistMinAmount] = useState('')
+  const [histMaxAmount, setHistMaxAmount] = useState('')
   const [debtSearch, setDebtSearch] = useState('')
+  const [debtGroupFilter, setDebtGroupFilter] = useState('Barchasi')
   const [debtPage, setDebtPage] = useState(1)
   const DEBT_PER_PAGE = 10
 
@@ -162,11 +167,13 @@ export default function Payments() {
   )
 
   const filteredDebtors = useMemo(
-    () => allDebtors.filter(s =>
-      s.fullName.toLowerCase().includes(debtSearch.toLowerCase()) ||
-      s.group.toLowerCase().includes(debtSearch.toLowerCase())
-    ),
-    [allDebtors, debtSearch]
+    () => allDebtors.filter(s => {
+      const matchesSearch = s.fullName.toLowerCase().includes(debtSearch.toLowerCase()) ||
+        s.group.toLowerCase().includes(debtSearch.toLowerCase())
+      const matchesGroup = debtGroupFilter === 'Barchasi' || s.group === debtGroupFilter
+      return matchesSearch && matchesGroup
+    }),
+    [allDebtors, debtSearch, debtGroupFilter]
   )
 
   const totalDebtPages = Math.ceil(filteredDebtors.length / DEBT_PER_PAGE)
@@ -181,13 +188,32 @@ export default function Payments() {
     return students
       .filter(s => s.fullName.toLowerCase().includes(search))
       .map(s => {
-        const stuPayments = payments
+        let stuPayments = payments
           .filter(p => p.studentId === s.id)
-          .sort((a, b) => new Date(a.date) - new Date(b.date))
+        
+        // Filter by date range
+        if (histDateFrom) {
+          stuPayments = stuPayments.filter(p => p.date >= histDateFrom)
+        }
+        if (histDateTo) {
+          stuPayments = stuPayments.filter(p => p.date <= histDateTo)
+        }
+        
+        // Filter by amount range
+        if (histMinAmount) {
+          const minAmt = Number(histMinAmount)
+          stuPayments = stuPayments.filter(p => p.amount >= minAmt)
+        }
+        if (histMaxAmount) {
+          const maxAmt = Number(histMaxAmount)
+          stuPayments = stuPayments.filter(p => p.amount <= maxAmt)
+        }
+
+        stuPayments = stuPayments.sort((a, b) => new Date(a.date) - new Date(b.date))
         return { student: s, payments: stuPayments }
       })
       .filter(row => row.payments.length > 0)
-  }, [students, payments, histSearch])
+  }, [students, payments, histSearch, histDateFrom, histDateTo, histMinAmount, histMaxAmount])
 
   const maxPayments = useMemo(
     () => studentPaymentRows.reduce((m, r) => Math.max(m, r.payments.length), 0),
@@ -283,10 +309,30 @@ export default function Payments() {
       <Section>
         <SectionHeader>
           <SectionTitle>Qarzdorlar ro'yxati ({filteredDebtors.length} ta)</SectionTitle>
-          <SearchBox>
-            <MdSearch />
-            <input placeholder="Ism yoki guruh..." value={debtSearch} onChange={e => handleDebtSearch(e.target.value)} />
-          </SearchBox>
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+            <SearchBox>
+              <MdSearch />
+              <input placeholder="Ism yoki guruh..." value={debtSearch} onChange={e => handleDebtSearch(e.target.value)} />
+            </SearchBox>
+            <select
+              value={debtGroupFilter}
+              onChange={e => setDebtGroupFilter(e.target.value)}
+              style={{
+                background: '#13161f',
+                border: '1px solid #2d3748',
+                borderRadius: '8px',
+                padding: '7px 12px',
+                color: '#e2e8f0',
+                outline: 'none',
+                fontSize: '0.88rem'
+              }}
+            >
+              <option value="Barchasi">Barcha guruhlar</option>
+              {groups.map(g => (
+                <option key={g.id} value={g.name}>{g.name}</option>
+              ))}
+            </select>
+          </div>
         </SectionHeader>
         <TableWrapper>
           <Table>
@@ -353,10 +399,72 @@ export default function Payments() {
       <Section>
         <SectionHeader>
           <SectionTitle>To'lovlar jadvali ({studentPaymentRows.length} ta o'quvchi)</SectionTitle>
-          <SearchBox>
-            <MdSearch />
-            <input placeholder="O'quvchi nomi..." value={histSearch} onChange={e => setHistSearch(e.target.value)} />
-          </SearchBox>
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
+            <SearchBox>
+              <MdSearch />
+              <input placeholder="O'quvchi nomi..." value={histSearch} onChange={e => setHistSearch(e.target.value)} />
+            </SearchBox>
+            <input
+              type="date"
+              value={histDateFrom}
+              onChange={e => setHistDateFrom(e.target.value)}
+              style={{
+                background: '#13161f',
+                border: '1px solid #2d3748',
+                borderRadius: '8px',
+                padding: '7px 12px',
+                color: '#e2e8f0',
+                outline: 'none',
+                fontSize: '0.88rem'
+              }}
+            />
+            <input
+              type="date"
+              value={histDateTo}
+              onChange={e => setHistDateTo(e.target.value)}
+              style={{
+                background: '#13161f',
+                border: '1px solid #2d3748',
+                borderRadius: '8px',
+                padding: '7px 12px',
+                color: '#e2e8f0',
+                outline: 'none',
+                fontSize: '0.88rem'
+              }}
+            />
+            <input
+              type="number"
+              placeholder="Min summa"
+              value={histMinAmount}
+              onChange={e => setHistMinAmount(e.target.value)}
+              style={{
+                background: '#13161f',
+                border: '1px solid #2d3748',
+                borderRadius: '8px',
+                padding: '7px 12px',
+                color: '#e2e8f0',
+                outline: 'none',
+                fontSize: '0.88rem',
+                width: '120px'
+              }}
+            />
+            <input
+              type="number"
+              placeholder="Max summa"
+              value={histMaxAmount}
+              onChange={e => setHistMaxAmount(e.target.value)}
+              style={{
+                background: '#13161f',
+                border: '1px solid #2d3748',
+                borderRadius: '8px',
+                padding: '7px 12px',
+                color: '#e2e8f0',
+                outline: 'none',
+                fontSize: '0.88rem',
+                width: '120px'
+              }}
+            />
+          </div>
         </SectionHeader>
         <TableWrapper>
           <Table>
