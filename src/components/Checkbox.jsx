@@ -8,11 +8,11 @@ const StyledWrapper = styled.div`
   height: 40px;
   cursor: pointer;
 
-  #_checkbox {
+  .checkbox-input {
     display: none;
   }
 
-  label {
+  .checkbox-label {
     position: absolute;
     top: 50%;
     right: 0;
@@ -29,7 +29,7 @@ const StyledWrapper = styled.div`
     z-index: 1;
   }
 
-  label:before {
+  .checkbox-label:before {
     content: "";
     position: absolute;
     top: 50%;
@@ -45,16 +45,16 @@ const StyledWrapper = styled.div`
     transition: 0.2s ease width, 0.2s ease height;
   }
 
-  label:hover:before {
+  .checkbox-label:hover:before {
     transform: translateY(-50%) scale(1.1);
     box-shadow: inset 0 7px 10px #ff9d96;
   }
 
-  label:active {
+  .checkbox-label:active {
     transform: translateY(-50%) scale(0.9);
   }
 
-  #tick_mark {
+  .tick-mark {
     position: absolute;
     top: 0px;
     right: 0;
@@ -66,7 +66,7 @@ const StyledWrapper = styled.div`
     transform: rotateZ(-40deg);
   }
 
-  #tick_mark:before, #tick_mark:after {
+  .tick-mark:before, .tick-mark:after {
     content: "";
     position: absolute;
     background-color: #fff;
@@ -75,7 +75,7 @@ const StyledWrapper = styled.div`
     transition: 0.2s ease transform, 0.2s ease opacity;
   }
 
-  #tick_mark:before {
+  .tick-mark:before {
     left: 0;
     bottom: 0;
     width: 4px;
@@ -84,7 +84,7 @@ const StyledWrapper = styled.div`
     transform: translateY(-68px)
   }
 
-  #tick_mark:after {
+  .tick-mark:after {
     left: 0;
     bottom: 0;
     width: 100%;
@@ -93,16 +93,17 @@ const StyledWrapper = styled.div`
     transform: translateX(78px)
   }
 
-  #_checkbox:checked + label {
+  .checkbox-input:checked + .checkbox-label {
     background-color: #07d410;
   }
 
-  #_checkbox:checked + label:before {
+  .checkbox-input:checked + .checkbox-label:before {
     width: 0;
     height: 0;
   }
 
-  #_checkbox:checked + label #tick_mark:before, #_checkbox:checked + label #tick_mark:after {
+  .checkbox-input:checked + .checkbox-label .tick-mark:before,
+  .checkbox-input:checked + .checkbox-label .tick-mark:after {
     transform: translate(0);
     opacity: 1;
   }
@@ -116,11 +117,12 @@ const Checkbox = ({ checked, onChange, id }) => {
         <input
           type="checkbox"
           id={checkboxId}
+          className="checkbox-input"
           checked={checked}
           onChange={onChange}
         />
-        <label htmlFor={checkboxId}>
-          <div id="tick_mark" />
+        <label htmlFor={checkboxId} className="checkbox-label">
+          <div className="tick-mark" />
         </label>
       </div>
     </StyledWrapper>
