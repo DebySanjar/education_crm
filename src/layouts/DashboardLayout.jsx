@@ -33,6 +33,9 @@ export default function DashboardLayout() {
   const [studentsOpen, setStudentsOpen] = useState(
     location.pathname === '/students' || location.pathname === '/groups'
   )
+  const [surveysOpen, setSurveysOpen] = useState(
+    location.pathname === '/surveys' || location.pathname === '/surveys/submissions'
+  )
 
   const handleLogout = () => {
     logout()
@@ -40,6 +43,7 @@ export default function DashboardLayout() {
   }
 
   const isStudentsActive = location.pathname === '/students' || location.pathname === '/groups'
+  const isSurveysActive = location.pathname === '/surveys' || location.pathname === '/surveys/submissions'
 
   return (
     <LayoutWrapper>
@@ -120,13 +124,11 @@ export default function DashboardLayout() {
             </>
           )}
 
-          {/* Qolgan nav itemlar */}
+          {/* Davomat, To'lovlar, Chiqimlar */}
           {[
             { to: '/attendance', icon: <MdChecklist />, label: 'Davomat' },
             { to: '/payments', icon: <MdPayment />, label: "To'lovlar" },
             { to: '/expenses', icon: <MdMoneyOff />, label: 'Chiqimlar' },
-            { to: '/surveys', icon: <MdDescription />, label: 'Sorovnomalar' },
-            { to: '/statistics', icon: <MdBarChart />, label: 'Statistika' },
           ].map(item => (
             <NavItem
               key={item.to}
@@ -139,6 +141,58 @@ export default function DashboardLayout() {
               {!collapsed && <span className="label">{item.label}</span>}
             </NavItem>
           ))}
+
+          {/* Sorovnomalar — expandable */}
+          {collapsed ? (
+            <>
+              <NavItem to="/surveys" $collapsed={collapsed} onClick={() => setMobileOpen(false)} title="Sorovnomalar">
+                <span className="icon"><MdDescription /></span>
+              </NavItem>
+              <NavItem to="/surveys/submissions" $collapsed={collapsed} onClick={() => setMobileOpen(false)} title="Arizachilar">
+                <span className="icon"><MdDescription /></span>
+              </NavItem>
+            </>
+          ) : (
+            <>
+              <ParentNavItem
+                $active={isSurveysActive}
+                onClick={() => setSurveysOpen(o => !o)}
+              >
+                <span className="icon"><MdDescription /></span>
+                <span className="label">Sorovnomalar</span>
+                <ChevronIcon $open={surveysOpen}><MdExpandMore /></ChevronIcon>
+              </ParentNavItem>
+              {surveysOpen && (
+                <SubNav>
+                  <SubNavItem
+                    to="/surveys"
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    <span className="dot" />
+                    <span>Sorovnomalar</span>
+                  </SubNavItem>
+                  <SubNavItem
+                    to="/surveys/submissions"
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    <span className="dot" />
+                    <span>Arizachilar</span>
+                  </SubNavItem>
+                </SubNav>
+              )}
+            </>
+          )}
+
+          {/* Statistika */}
+          <NavItem
+            to="/statistics"
+            $collapsed={collapsed}
+            onClick={() => setMobileOpen(false)}
+            title={collapsed ? 'Statistika' : ''}
+          >
+            <span className="icon"><MdBarChart /></span>
+            {!collapsed && <span className="label">Statistika</span>}
+          </NavItem>
         </Nav>
 
         <NavItem

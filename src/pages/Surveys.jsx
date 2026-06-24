@@ -352,11 +352,14 @@ const SubmitButton = styled.button`
 
 const SurveysPage = () => {
   const { surveys, addSurvey, deleteSurvey, submissions } = useData()
+  const location = useLocation()
+  const navigate = useNavigate()
 
   const [showAddModal, setShowAddModal] = useState(false)
   const [formData, setFormData] = useState({ name: '', description: '' })
-  const [activeTab, setActiveTab] = useState('surveys') // 'surveys' or 'submissions'
   const [selectedSurveyId, setSelectedSurveyId] = useState(null)
+
+  const activeTab = location.pathname === '/surveys/submissions' ? 'submissions' : 'surveys'
 
   const copyLink = (surveyId) => {
     const link = `${window.location.origin}/survey/${surveyId}`
