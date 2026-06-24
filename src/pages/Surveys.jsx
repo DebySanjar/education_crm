@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
 import styled from 'styled-components'
 import { useData } from '../context/DataContext'
-import { MdAdd, MdLink, MdDelete, MdEdit, MdVisibility, MdSend } from 'react-icons/md'
+import { MdAdd, MdLink, MdDelete, MdEdit, MdVisibility, MdSend, MdExpandMore } from 'react-icons/md'
 import { motion } from 'framer-motion'
 
 const Wrapper = styled.div`
@@ -50,30 +51,6 @@ const Button = styled.button`
   }
 `
 
-const TabsContainer = styled.div`
-  display: flex;
-  gap: 8px;
-  background: #13161f;
-  padding: 6px;
-  border-radius: 10px;
-  border: 1px solid #1e2235;
-`
-
-const Tab = styled.button`
-  padding: 10px 20px;
-  border-radius: 8px;
-  border: none;
-  background: ${props => props.$active ? '#1a1d2e' : 'transparent'};
-  color: ${props => props.$active ? '#00e0ff' : '#94a3b8'};
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s;
-  &:hover {
-    color: #e2e8f0;
-  }
-`
-
-// Tab 1: Surveys Cards
 const CardsGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -130,7 +107,7 @@ const IconButton = styled.button`
     border-color: #4a5568;
     color: #e2e8f0;
   }
-  &.$danger:hover {
+  &.danger:hover {
     border-color: #ff6b6b;
     color: #ff6b6b;
   }
@@ -202,7 +179,6 @@ const CopyButton = styled.button`
   }
 `
 
-// Tab 2: Submissions Table
 const TableWrapper = styled.div`
   background: #13161f;
   border: 1px solid #1e2235;
@@ -234,7 +210,6 @@ const Td = styled.td`
   border-bottom: 1px solid #1e2235;
 `
 
-// Modal
 const ModalOverlay = styled.div`
   position: fixed;
   inset: 0;
@@ -309,7 +284,7 @@ const Label = styled.label`
 `
 
 const Input = styled.input`
-  padding: 12px 16px;
+  padding: 14px 16px;
   border-radius: 8px;
   border: 1px solid #2d3748;
   background: #0f1117;
@@ -323,14 +298,14 @@ const Input = styled.input`
 `
 
 const Textarea = styled.textarea`
-  padding: 12px 16px;
+  padding: 14px 16px;
   border-radius: 8px;
   border: 1px solid #2d3748;
   background: #0f1117;
   color: #e2e8f0;
   font-size: 0.95rem;
   outline: none;
-  min-height: 100px;
+  min-height: 120px;
   resize: vertical;
   transition: all 0.15s;
   &:focus {
@@ -377,30 +352,13 @@ const SubmitButton = styled.button`
 
 const SurveysPage = () => {
   const { surveys, addSurvey, deleteSurvey, submissions } = useData()
-  const [activeTab, setActiveTab] = useState('surveys') // 'surveys' or 'submissions'
-  const [selectedSurvey, setSelectedSurvey] = useState(null) // for submissions tab
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [formData, setFormData] = useState({ name: '', description: '', fields: [] })
+  const navigate = useNavigate()
+  const location = useLocation()
 
-  const handleAddSurvey = async (e) => {
-    e.preventDefault()
-    if (!formData.name) return
-    
-    // Default fields: name, surname, phone
-    const defaultFields = [
-      { name: 'firstName', label: 'Ism', type: 'text', required: true },
-      { name: 'lastName', label: 'Familiya', type: 'text', required: true },
-      { name: 'phone', label: 'Telefon', type: 'tel', required: true }
-    ]
-    
-    await addSurvey({ 
-      ...formData, 
-      fields: defaultFields 
-    })
-    
-    setFormData({ name: '', description: '', fields: [] })
-    setIsModalOpen(false)
-  }
+  const [showAddModal, setShowAddModal] = useState(false)
+  const [formData, setFormData] = useState({ name: '', description: '' })
+  
+  const [selectedSurveyId, setSelectedSurveyId] = useState(null)
 
   const copyLink = (surveyId) => {
     const link = `${window.location.origin}/survey/${surveyId}`
@@ -408,8 +366,26 @@ const SurveysPage = () => {
     alert('Link nusxalandi!')
   }
 
-  const filteredSubmissions = selectedSurvey 
-    ? submissions.filter(s => s.surveyId === selectedSurvey) 
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    if (!formData.name.trim()) return
+    
+    await addSurvey({ 
+      name: formData.name,
+      description: formData.description,
+      fields: [
+        { name: 'firstName', label: 'Ism', type: 'text', required: true },
+        { name: 'lastName', label: 'Familiya', type: 'text', required: true },
+        { name: 'phone', label: 'Telefon', type: 'tel', required: true }
+      ]
+    })
+    
+    setFormData({ name: '', description: '' })
+    setShowAddModal(false)
+  }
+
+  const filteredSubmissions = selectedSurveyId 
+    ? submissions.filter(s => s.surveyId === selectedSurveyId) 
     : submissions
 
   const containerVariants = {
@@ -422,6 +398,8 @@ const SurveysPage = () => {
     show: { opacity: 1, y: 0, transition: { duration: 0.4 } }
   }
 
+  const isSurveysActive = location.pathname === '/surveys'
+
   return (
     <Wrapper>
       <PageHeader>
@@ -429,22 +407,46 @@ const SurveysPage = () => {
           <h2>Sorovnomalar</h2>
           <p>O'quvchilar uchun ariza va ro'yxatdan o'tish formalarini boshqaring</p>
         </TitleBlock>
-        <Button onClick={() => setIsModalOpen(true)}>
+        <Button onClick={() => setShowAddModal(true)}>
           <MdAdd size={20} />
           Yangi sorovnoma
         </Button>
       </PageHeader>
 
-      <TabsContainer>
-        <Tab $active={activeTab === 'surveys'} onClick={() => setActiveTab('surveys')}>
+      <div style={{ display: 'flex', gap: '8px', background: '#13161f', padding: '6px', borderRadius: '10px', border: '1px solid #1e2235' }}>
+        <button
+          onClick={() => navigate('/surveys')}
+          style={{
+            padding: '10px 20px',
+            borderRadius: '8px',
+            border: 'none',
+            background: isSurveysActive ? '#1a1d2e' : 'transparent',
+            color: isSurveysActive ? '#00e0ff' : '#94a3b8',
+            fontWeight: 600,
+            cursor: 'pointer',
+            transition: 'all 0.15s'
+          }}
+        >
           Sorovnomalar
-        </Tab>
-        <Tab $active={activeTab === 'submissions'} onClick={() => setActiveTab('submissions')}>
+        </button>
+        <button
+          onClick={() => navigate('/surveys/submissions')}
+          style={{
+            padding: '10px 20px',
+            borderRadius: '8px',
+            border: 'none',
+            background: !isSurveysActive ? '#1a1d2e' : 'transparent',
+            color: !isSurveysActive ? '#00e0ff' : '#94a3b8',
+            fontWeight: 600,
+            cursor: 'pointer',
+            transition: 'all 0.15s'
+          }}
+        >
           Arizachilar
-        </Tab>
-      </TabsContainer>
+        </button>
+      </div>
 
-      {activeTab === 'surveys' && (
+      {isSurveysActive ? (
         <CardsGrid as={motion.div} variants={containerVariants} initial="hidden" animate="show">
           {surveys.map(survey => (
             <Card key={survey.id} variants={itemVariants}>
@@ -454,7 +456,7 @@ const SurveysPage = () => {
                   <IconButton onClick={() => copyLink(survey.id)} title="Linkni nusxalash">
                     <MdLink size={18} />
                   </IconButton>
-                  <IconButton className="$danger" onClick={() => deleteSurvey(survey.id)} title="O'chirish">
+                  <IconButton className="danger" onClick={() => deleteSurvey(survey.id)} title="O'chirish">
                     <MdDelete size={18} />
                   </IconButton>
                 </CardActions>
@@ -463,16 +465,16 @@ const SurveysPage = () => {
               <StatsRow>
                 <Stat>
                   <StatLabel>Ko'rilgan</StatLabel>
-                  <StatValue>{survey.views}</StatValue>
+                  <StatValue>{survey.views || 0}</StatValue>
                 </Stat>
                 <Stat>
                   <StatLabel>To'ldirilgan</StatLabel>
-                  <StatValue>{survey.submissions}</StatValue>
+                  <StatValue>{survey.submissions || 0}</StatValue>
                 </Stat>
                 <Stat>
                   <StatLabel>Konversiya</StatLabel>
                   <StatValue>
-                    {survey.views > 0 ? Math.round((survey.submissions / survey.views) * 100) : 0}%
+                    {survey.views > 0 ? Math.round(((survey.submissions || 0) / survey.views) * 100) : 0}%
                   </StatValue>
                 </Stat>
               </StatsRow>
@@ -493,26 +495,43 @@ const SurveysPage = () => {
             </div>
           )}
         </CardsGrid>
-      )}
-
-      {activeTab === 'submissions' && (
+      ) : (
         <TableWrapper>
-          {surveys.length > 0 && (
-            <div style={{ padding: '16px 20px', borderBottom: '1px solid #1e2235', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-              <Tab $active={!selectedSurvey} onClick={() => setSelectedSurvey(null)}>
-                Barcha arizalar
-              </Tab>
-              {surveys.map(survey => (
-                <Tab 
-                  key={survey.id} 
-                  $active={selectedSurvey === survey.id} 
-                  onClick={() => setSelectedSurvey(survey.id)}
-                >
-                  {survey.name}
-                </Tab>
-              ))}
-            </div>
-          )}
+          <div style={{ padding: '16px 20px', borderBottom: '1px solid #1e2235', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            <button
+              onClick={() => setSelectedSurveyId(null)}
+              style={{
+                padding: '8px 16px',
+                borderRadius: '8px',
+                border: 'none',
+                background: !selectedSurveyId ? '#1a1d2e' : 'transparent',
+                color: !selectedSurveyId ? '#00e0ff' : '#94a3b8',
+                fontWeight: 600,
+                cursor: 'pointer',
+                transition: 'all 0.15s'
+              }}
+            >
+              Barcha arizachilar
+            </button>
+            {surveys.map(survey => (
+              <button 
+                key={survey.id}
+                onClick={() => setSelectedSurveyId(survey.id)}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: '8px',
+                  border: 'none',
+                  background: selectedSurveyId === survey.id ? '#1a1d2e' : 'transparent',
+                  color: selectedSurveyId === survey.id ? '#00e0ff' : '#94a3b8',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'all 0.15s'
+                }}
+              >
+                {survey.name}
+              </button>
+            ))}
+          </div>
           <Table>
             <thead>
               <tr>
@@ -531,7 +550,7 @@ const SurveysPage = () => {
                   <Td>{submission.phone}</Td>
                   <Td>{surveys.find(s => s.id === submission.surveyId)?.name || 'Noma\'lum'}</Td>
                   <Td>
-                    {submission.createdAt?.toDate?.().toLocaleDateString('uz-UZ') || 'Noma\'lum'}
+                    {submission.createdAt?.toDate?.().toLocaleString('uz-UZ') || 'Noma\'lum'}
                   </Td>
                 </tr>
               ))}
@@ -547,15 +566,14 @@ const SurveysPage = () => {
         </TableWrapper>
       )}
 
-      {/* Add Survey Modal */}
-      {isModalOpen && (
-        <ModalOverlay onClick={(e) => e.target === e.target && setIsModalOpen(false)}>
+      {showAddModal && (
+        <ModalOverlay onClick={(e) => e.target === e.target && setShowAddModal(false)}>
           <Modal as={motion.div} initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
             <ModalHeader>
               <ModalTitle>Yangi sorovnoma yaratish</ModalTitle>
-              <CloseButton onClick={() => setIsModalOpen(false)}>✕</CloseButton>
+              <CloseButton onClick={() => setShowAddModal(false)}>✕</CloseButton>
             </ModalHeader>
-            <Form onSubmit={handleAddSurvey}>
+            <Form onSubmit={handleSubmit}>
               <FormGroup>
                 <Label>Sorovnoma nomi</Label>
                 <Input
@@ -574,7 +592,7 @@ const SurveysPage = () => {
                 />
               </FormGroup>
               <ModalActions>
-                <CancelButton type="button" onClick={() => setIsModalOpen(false)}>
+                <CancelButton type="button" onClick={() => setShowAddModal(false)}>
                   Bekor qilish
                 </CancelButton>
                 <SubmitButton type="submit">

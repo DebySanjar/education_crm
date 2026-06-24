@@ -15,8 +15,6 @@ import SurveyPage from './pages/SurveyPage'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { DataProvider } from './context/DataContext'
 import { ToastProvider } from './context/ToastContext'
-import { OnboardingProvider } from './context/OnboardingContext'
-import OnboardingTour from './components/OnboardingTour'
 
 function PrivateRoute({ children }) {
   const { isLoggedIn } = useAuth()
@@ -26,7 +24,6 @@ function PrivateRoute({ children }) {
 function AppRoutes() {
   return (
     <>
-      <OnboardingTour />
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/survey/:id" element={<SurveyPage />} />
@@ -45,6 +42,7 @@ function AppRoutes() {
           <Route path="payments" element={<Payments />} />
           <Route path="expenses" element={<Expenses />} />
           <Route path="surveys" element={<Surveys />} />
+          <Route path="surveys/submissions" element={<Surveys />} />
           <Route path="statistics" element={<Statistics />} />
           <Route path="settings" element={<Settings />} />
         </Route>
@@ -60,10 +58,7 @@ export default function App() {
       <AuthProvider>
         <ToastProvider>
           <DataProvider>
-            {/* OnboardingProvider AuthProvider ichida bo'lishi kerak, chunki u useAuth dan foydalanadi */}
-            <OnboardingProvider>
-              <AppRoutes />
-            </OnboardingProvider>
+            <AppRoutes />
           </DataProvider>
         </ToastProvider>
       </AuthProvider>
