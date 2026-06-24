@@ -410,3 +410,23 @@ export const getSurveyById = async (id) => {
     return { success: false, data: null, error: error.message }
   }
 }
+
+export const deleteSubmission = async (id, surveyId) => {
+  try {
+    await deleteDoc(doc(db, COLLECTIONS.SUBMISSIONS, id))
+    // Update survey submission count
+    if (surveyId) {
+      const surveyRef = doc(db, COLLECTIONS.SURVEYS, surveyId)
+      const docSnap = await getDoc(surveyRef)
+      if (docSnap.exists()) {
+        const currentSubmissions = docSnap.data().submissions || 0
+        await updateDoc(surveyRef, {
+          submissions: Math.max(0, currentSubmissions - 1)
+        })
+      }
+    }
+    return { success: true }
+  } catch (error) {
+    return { success: false, error: error.message }
+  }
+}

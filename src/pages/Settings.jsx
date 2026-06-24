@@ -3,250 +3,139 @@ import styled from 'styled-components'
 import { useAuth } from '../context/AuthContext'
 import { useData } from '../context/DataContext'
 import { useToast } from '../context/ToastContext'
-import { MdSave, MdCheckCircle, MdTimer, MdDeleteForever, MdWarning } from 'react-icons/md'
+import {
+  MdSave,
+  MdCheckCircle,
+  MdTimer,
+  MdDeleteForever,
+  MdWarning,
+  MdKeyboardArrowRight,
+  MdPowerSettingsNew,
+  MdDashboard
+} from 'react-icons/md'
 
-export default function Settings() {
-  const {
-    autoLogoutEnabled,
-    setAutoLogoutEnabled,
-    autoLogoutMinutes,
-    setAutoLogoutMinutes,
-    isSuperAdmin,
-  } = useAuth()
-
-  const { clearAllData } = useData()
-  const toast = useToast()
-
-  const [tempAutoLogoutMinutes, setTempAutoLogoutMinutes] = useState(autoLogoutMinutes.toString())
-  const [saveSuccess, setSaveSuccess] = useState(false)
-  const [showClearDialog, setShowClearDialog] = useState(false)
-  const [clearing, setClearing] = useState(false)
-
-  const handleSave = () => {
-    setAutoLogoutMinutes(Number(tempAutoLogoutMinutes))
-    setSaveSuccess(true)
-    setTimeout(() => setSaveSuccess(false), 3000)
-  }
-
-  const handleClearData = async () => {
-    setClearing(true)
-    const result = await clearAllData()
-    setClearing(false)
-    setShowClearDialog(false)
-    // toast DataContext da chiqariladi — bu yerda qo'shimcha narsa kerak emas
-  }
-
-  return (
-    <Wrapper>
-      <PageHeader>
-        <div>
-          <h2>Sozlamalar</h2>
-          <p>Tizim sozlamalari va foydalanuvchi ma'lumotlari</p>
-        </div>
-      </PageHeader>
-
-      {isSuperAdmin() && (
-      <Section>
-        <SectionHeader>
-          <MdDeleteForever style={{ color: '#ff6b6b', fontSize: '1.3rem' }} />
-          <SectionTitle>Ma'lumotlarni tozalash</SectionTitle>
-        </SectionHeader>
-        <SectionBody>
-          <WarningBox>
-            <MdWarning style={{ fontSize: '1.5rem', color: '#f59e0b', flexShrink: 0 }} />
-            <div>
-              <WarningTitle>Diqqat!</WarningTitle>
-              <WarningText>
-                Bu amal barcha ma'lumotlarni (o'quvchilar, to'lovlar, davomat, chiqimlar) 
-                butunlay o'chiradi. Bu amalni qaytarib bo'lmaydi!
-              </WarningText>
-            </div>
-          </WarningBox>
-          
-          <ClearButton onClick={() => setShowClearDialog(true)}>
-            <MdDeleteForever />
-            Barcha ma'lumotlarni tozalash
-          </ClearButton>
-        </SectionBody>
-      </Section>
-      )}
-
-      <Section>
-        <SectionHeader>
-          <MdTimer style={{ color: '#f59e0b', fontSize: '1.3rem' }} />
-          <SectionTitle>Avtomatik bloklash</SectionTitle>
-        </SectionHeader>
-        <SectionBody>
-          <FormRow>
-            <label>Faollashtirish</label>
-            <Toggle
-              type="button"
-              $active={autoLogoutEnabled}
-              onClick={() => setAutoLogoutEnabled(!autoLogoutEnabled)}
-            >
-              <ToggleDot $active={autoLogoutEnabled} />
-            </Toggle>
-          </FormRow>
-
-          {autoLogoutEnabled && (
-            <FormRow>
-              <label>Bloklash vaqti (daqiqa)</label>
-              <input
-                type="number"
-                min="1"
-                value={tempAutoLogoutMinutes}
-                onChange={(e) => setTempAutoLogoutMinutes(e.target.value)}
-                style={{ width: '100px' }}
-              />
-            </FormRow>
-          )}
-        </SectionBody>
-      </Section>
-
-      <SaveRow>
-        <SaveButton onClick={handleSave}>
-          {saveSuccess ? (
-            <>
-              <MdCheckCircle />
-              Saqlandi!
-            </>
-          ) : (
-            <>
-              <MdSave />
-              Saqlash
-            </>
-          )}
-        </SaveButton>
-      </SaveRow>
-
-      {/* Clear Data Confirmation Dialog */}
-      {showClearDialog && (
-        <DialogOverlay onClick={() => !clearing && setShowClearDialog(false)}>
-          <Dialog onClick={e => e.stopPropagation()}>
-            <DialogIcon>
-              <MdWarning />
-            </DialogIcon>
-            <DialogTitle>Ma'lumotlarni tozalash</DialogTitle>
-            <DialogText>
-              Barcha ma'lumotlar (o'quvchilar, to'lovlar, davomat, chiqimlar) 
-              butunlay o'chiriladi. Bu amalni qaytarib bo'lmaydi!
-            </DialogText>
-            <DialogText style={{ fontWeight: 600, color: '#ff6b6b' }}>
-              Davom etishni xohlaysizmi?
-            </DialogText>
-            <DialogBtns>
-              <DialogCancel 
-                onClick={() => setShowClearDialog(false)}
-                disabled={clearing}
-              >
-                Bekor qilish
-              </DialogCancel>
-              <DialogConfirm 
-                onClick={handleClearData}
-                disabled={clearing}
-              >
-                {clearing ? 'Tozalanmoqda...' : 'Ha, tozalash'}
-              </DialogConfirm>
-            </DialogBtns>
-          </Dialog>
-        </DialogOverlay>
-      )}
-    </Wrapper>
-  )
-}
-
-const Wrapper = styled.div`display: flex; flex-direction: column; gap: 24px;`
+const Wrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding-bottom: 20px;
+`
 
 const PageHeader = styled.div`
-  h2 { font-size: 1.4rem; font-weight: 700; color: #e2e8f0; margin-bottom: 4px; }
-  p { font-size: 0.88rem; color: #8892b0; }
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+  h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #e2e8f0;
+    margin: 0;
+  }
+  p {
+    font-size: 0.9rem;
+    color: #8892b0;
+    margin: 0;
+  }
 `
 
 const Section = styled.div`
   background: #13161f;
   border: 1px solid #1e2235;
-  border-radius: 12px;
+  border-radius: 14px;
   overflow: hidden;
+  transition: box-shadow 0.2s;
+  &:hover {
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  }
 `
 
 const SectionHeader = styled.div`
-  display: flex; align-items: center; gap: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
   padding: 16px 20px;
   border-bottom: 1px solid #1e2235;
   background: #0f1117;
+  svg {
+    font-size: 1.3rem;
+    color: #00e0ff;
+  }
 `
 
 const SectionTitle = styled.div`
-  font-size: 0.95rem;
-  font-weight: 600;
+  font-size: 1rem;
+  font-weight: 700;
   color: #e2e8f0;
 `
 
 const SectionBody = styled.div`
   padding: 20px;
-  display: flex; flex-direction: column; gap: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
 `
 
 const FormRow = styled.div`
-  display: flex; align-items: center; gap: 16px;
-  label {
-    font-size: 0.86rem;
-    color: #8892b0;
-    font-weight: 500;
-    width: 180px;
-    flex-shrink: 0;
-  }
-  input {
-    background: #0f1117;
-    border: 1px solid #2d3748;
-    border-radius: 8px;
-    padding: 8px 12px;
-    color: #e2e8f0;
-    font-size: 0.9rem;
-    outline: none;
-    flex: 1;
-    &:focus { border-color: #00e0ff; }
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+`
+
+const Label = styled.label`
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #cbd5e1;
+  flex: 1;
+  min-width: 160px;
+`
+
+const Input = styled.input`
+  background: #0f1117;
+  border: 1px solid #2d3748;
+  border-radius: 10px;
+  padding: 10px 14px;
+  color: #e2e8f0;
+  font-size: 0.95rem;
+  outline: none;
+  width: 140px;
+  transition: all 0.15s;
+  &:focus {
+    border-color: #00e0ff;
+    box-shadow: 0 0 0 3px rgba(0, 224, 255, 0.1);
   }
 `
 
-const Toggle = styled.button`
-  width: 52px;
-  height: 28px;
-  border-radius: 14px;
-  background: ${({ $active }) => $active ? '#00e0ff28' : '#2d3748'};
-  border: 1px solid ${({ $active }) => $active ? '#00e0ff44' : '#2d3748'};
-  display: flex; align-items: center;
-  padding: 3px;
+const ToggleWrapper = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px;
+  border-radius: 24px;
+  background: ${props => props.$active ? '#00e0ff22' : '#2d3748'};
+  border: none;
   cursor: pointer;
   transition: all 0.2s;
-  flex-shrink: 0;
 `
 
 const ToggleDot = styled.div`
-  width: 20px;
-  height: 20px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
-  background: ${({ $active }) => $active ? '#00e0ff' : '#8892b0'};
-  transform: translateX(${({ $active }) => $active ? '24px' : '0'});
+  background: ${props => props.$active ? '#00e0ff' : '#64748b'};
+  transform: translateX(${props => props.$active ? '28px' : '0'});
   transition: all 0.2s;
+  box-shadow: ${props => props.$active ? '0 0 12px rgba(0,224,255,0.4)' : 'none'};
 `
 
-const SaveRow = styled.div`
-  display: flex; justify-content: flex-end;
-`
-
-const SaveButton = styled.button`
-  display: flex; align-items: center; gap: 8px;
-  background: #00e0ff18;
-  border: 1px solid #00e0ff44;
-  color: #00e0ff;
-  padding: 10px 24px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 0.95rem;
-  font-weight: 600;
-  transition: all 0.15s;
-  &:hover { background: #00e0ff28; }
+const ToggleTrack = styled.div`
+  width: 56px;
+  height: 32px;
+  border-radius: 16px;
+  background: transparent;
+  position: relative;
 `
 
 const WarningBox = styled.div`
@@ -255,8 +144,13 @@ const WarningBox = styled.div`
   gap: 12px;
   background: rgba(245, 158, 11, 0.08);
   border: 1px solid rgba(245, 158, 11, 0.3);
-  border-radius: 10px;
+  border-radius: 12px;
   padding: 16px;
+  svg {
+    color: #f59e0b;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+  }
 `
 
 const WarningTitle = styled.div`
@@ -272,47 +166,302 @@ const WarningText = styled.div`
   line-height: 1.5;
 `
 
-const ClearButton = styled.button`
+const DangerButton = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px 20px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 107, 107, 0.4);
+  background: rgba(255, 107, 107, 0.1);
+  color: #ff6b6b;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  &:hover {
+    background: rgba(255, 107, 107, 0.2);
+    border-color: #ff6b6b;
+  }
+  svg {
+    font-size: 1.1rem;
+  }
+`
+
+const SaveRow = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+`
+
+const SaveButton = styled.button`
   display: flex;
   align-items: center;
   gap: 8px;
-  background: rgba(255, 107, 107, 0.12);
-  border: 1px solid rgba(255, 107, 107, 0.35);
-  color: #ff6b6b;
-  padding: 10px 20px;
-  border-radius: 8px;
+  padding: 12px 28px;
+  border-radius: 10px;
+  border: none;
+  background: ${props => props.$success ? '#10b98122' : '#00e0ff22'};
+  color: ${props => props.$success ? '#10b981' : '#00e0ff'};
+  font-size: 0.95rem;
+  font-weight: 700;
   cursor: pointer;
-  font-size: 0.9rem;
-  font-weight: 600;
   transition: all 0.15s;
-  &:hover { background: rgba(255, 107, 107, 0.22); }
-  svg { font-size: 1.2rem; }
+  border: 1px solid ${props => props.$success ? '#10b98144' : '#00e0ff44'};
+  &:hover:not(:disabled) {
+    background: ${props => props.$success ? '#10b98133' : '#00e0ff33'};
+  }
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  svg {
+    font-size: 1.1rem;
+  }
 `
 
+const DangerZone = styled.div`
+  margin-top: 8px;
+`
+
+const LogoutButton = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 14px 16px;
+  background: #13161f;
+  border: 1px solid #1e2235;
+  border-radius: 12px;
+  color: #ff6b6b;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  &:hover {
+    background: rgba(255,107,107,0.08);
+    border-color: rgba(255,107,107,0.4);
+  }
+  svg {
+    font-size: 1.2rem;
+  }
+`
+
+export default function Settings() {
+  const {
+    autoLogoutEnabled,
+    setAutoLogoutEnabled,
+    autoLogoutMinutes,
+    setAutoLogoutMinutes,
+    isSuperAdmin,
+    logout
+  } = useAuth()
+
+  const { clearAllData } = useData()
+  const toast = useToast()
+
+  const [tempAutoLogoutMinutes, setTempAutoLogoutMinutes] = useState(autoLogoutMinutes.toString())
+  const [saveSuccess, setSaveSuccess] = useState(false)
+  const [showClearDialog, setShowClearDialog] = useState(false)
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false)
+  const [clearing, setClearing] = useState(false)
+
+  const handleSave = () => {
+    setAutoLogoutMinutes(Number(tempAutoLogoutMinutes))
+    setSaveSuccess(true)
+    setTimeout(() => setSaveSuccess(false), 3000)
+    toast.success("Sozlamalar saqlandi!")
+  }
+
+  const handleClearData = async () => {
+    setClearing(true)
+    const result = await clearAllData()
+    setClearing(false)
+    setShowClearDialog(false)
+  }
+
+  const handleLogout = () => {
+    setShowLogoutDialog(false)
+    logout()
+  }
+
+  return (
+    <Wrapper>
+      <PageHeader>
+        <h2>Sozlamalar</h2>
+        <p>Tizim sozlamalari va asosiy funktsiyalar</p>
+      </PageHeader>
+
+      <Section>
+        <SectionHeader>
+          <MdTimer />
+          <SectionTitle>Avtomatik bloklash</SectionTitle>
+        </SectionHeader>
+        <SectionBody>
+          <FormRow>
+            <Label>Faollashtirish</Label>
+            <ToggleWrapper
+              $active={autoLogoutEnabled}
+              onClick={() => setAutoLogoutEnabled(!autoLogoutEnabled)}
+            >
+              <ToggleTrack>
+                <ToggleDot $active={autoLogoutEnabled} />
+              </ToggleTrack>
+            </ToggleWrapper>
+          </FormRow>
+
+          {autoLogoutEnabled && (
+            <FormRow>
+              <Label>Bloklash vaqti (daqiqa)</Label>
+              <Input
+                type="number"
+                min="1"
+                value={tempAutoLogoutMinutes}
+                onChange={(e) => setTempAutoLogoutMinutes(e.target.value)}
+              />
+            </FormRow>
+          )}
+
+          <SaveRow>
+            <SaveButton
+              $success={saveSuccess}
+              onClick={handleSave}
+            >
+              {saveSuccess ? (
+                <>
+                  <MdCheckCircle />
+                  Saqlandi
+                </>
+              ) : (
+                <>
+                  <MdSave />
+                  Saqlash
+                </>
+              )}
+            </SaveButton>
+          </SaveRow>
+        </SectionBody>
+      </Section>
+
+      {isSuperAdmin() && (
+        <Section>
+          <SectionHeader>
+            <MdDeleteForever style={{ color: '#ff6b6b' }} />
+            <SectionTitle>Ma'lumotlarni tozalash</SectionTitle>
+          </SectionHeader>
+          <SectionBody>
+            <WarningBox>
+              <MdWarning />
+              <div>
+                <WarningTitle>Diqqat!</WarningTitle>
+                <WarningText>
+                  Bu amal barcha ma'lumotlarni (o'quvchilar, to'lovlar, davomat, chiqimlar) 
+                  butunlay o'chiradi. Bu amalni qaytarib bo'lmaydi!
+                </WarningText>
+              </div>
+            </WarningBox>
+
+            <DangerZone>
+              <DangerButton onClick={() => setShowClearDialog(true)}>
+                <MdDeleteForever />
+                Barcha ma'lumotlarni tozalash
+              </DangerButton>
+            </DangerZone>
+          </SectionBody>
+        </Section>
+      )}
+
+      <Section>
+        <SectionHeader>
+          <MdDashboard />
+          <SectionTitle>Hisobdan chiqish</SectionTitle>
+        </SectionHeader>
+        <SectionBody>
+          <LogoutButton onClick={() => setShowLogoutDialog(true)}>
+            <MdPowerSettingsNew />
+            Tizimdan chiqish
+          </LogoutButton>
+        </SectionBody>
+      </Section>
+
+      {/* Clear Data Confirmation Dialog */}
+      {showClearDialog && (
+        <DialogOverlay onClick={() => !clearing && setShowClearDialog(false)}>
+          <Dialog onClick={e => e.stopPropagation()}>
+            <DialogIcon>
+              <MdWarning />
+            </DialogIcon>
+            <DialogTitle>Ma'lumotlarni tozalash</DialogTitle>
+            <DialogText>
+              Barcha ma'lumotlarni o'chirishni xohlaysizmi? 
+              Bu amalni qaytarib bo'lmaydi!
+            </DialogText>
+            <DialogDivider />
+            <DialogButtons>
+              <DialogCancel
+                onClick={() => setShowClearDialog(false)}
+                disabled={clearing}
+              >
+                Bekor qilish
+              </DialogCancel>
+              <DialogDividerVertical />
+              <DialogConfirm
+                onClick={handleClearData}
+                disabled={clearing}
+              >
+                {clearing ? 'Tozalanmoqda' : 'Ha, tozalash'}
+              </DialogConfirm>
+            </DialogButtons>
+          </Dialog>
+        </DialogOverlay>
+      )}
+
+      {/* Logout Confirmation Dialog */}
+      {showLogoutDialog && (
+        <DialogOverlay onClick={() => setShowLogoutDialog(false)}>
+          <Dialog onClick={e => e.stopPropagation()}>
+            <DialogTitle>Hisobdan chiqish</DialogTitle>
+            <DialogText>
+              Tizimdan chiqishni xohlaysizmi?
+            </DialogText>
+            <DialogDivider />
+            <DialogButtons>
+              <DialogCancel onClick={() => setShowLogoutDialog(false)}>
+                Bekor qilish
+              </DialogCancel>
+              <DialogDividerVertical />
+              <DialogConfirm onClick={handleLogout}>
+                Chiqish
+              </DialogConfirm>
+            </DialogButtons>
+          </Dialog>
+        </DialogOverlay>
+      )}
+    </Wrapper>
+  )
+}
+
+// Reusable dialog components
 const DialogOverlay = styled.div`
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.75);
-  z-index: 300;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(2px);
+  z-index: 600;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 16px;
-  backdrop-filter: blur(2px);
 `
 
 const Dialog = styled.div`
-  background: #13161f;
-  border: 1px solid #2d3748;
+  background: #1c1f2e;
   border-radius: 16px;
-  padding: 32px 28px 24px;
-  max-width: 420px;
   width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  box-shadow: 0 24px 48px rgba(0,0,0,0.5);
+  max-width: 340px;
+  overflow: hidden;
 `
 
 const DialogIcon = styled.div`
@@ -326,55 +475,74 @@ const DialogIcon = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 6px;
+  margin: 24px auto 12px;
 `
 
 const DialogTitle = styled.div`
-  font-size: 1.15rem;
+  font-size: 1.05rem;
   font-weight: 700;
   color: #e2e8f0;
+  text-align: center;
+  padding: 0 20px 8px;
 `
 
 const DialogText = styled.div`
-  font-size: 0.88rem;
+  font-size: 0.9rem;
   color: #8892b0;
   text-align: center;
+  padding: 0 20px 16px;
   line-height: 1.5;
 `
 
-const DialogBtns = styled.div`
+const DialogDivider = styled.div`
+  height: 1px;
+  background: #2d3748;
+`
+
+const DialogButtons = styled.div`
   display: flex;
-  gap: 10px;
   width: 100%;
-  margin-top: 8px;
 `
 
 const DialogCancel = styled.button`
   flex: 1;
-  padding: 11px;
-  background: #1a1d2e;
-  border: 1px solid #2d3748;
-  color: #8892b0;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 0.9rem;
+  padding: 14px;
+  background: transparent;
+  border: none;
+  color: #00e0ff;
+  font-size: 1rem;
   font-weight: 500;
-  transition: all 0.15s;
-  &:hover:not(:disabled) { color: #e2e8f0; border-color: #4a5568; }
-  &:disabled { opacity: 0.5; cursor: not-allowed; }
+  cursor: pointer;
+  transition: background 0.15s;
+  &:hover:not(:disabled) {
+    background: rgba(0,224,255,0.08);
+  }
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 `
 
 const DialogConfirm = styled.button`
   flex: 1;
-  padding: 11px;
-  background: rgba(255,107,107,0.12);
-  border: 1px solid rgba(255,107,107,0.35);
+  padding: 14px;
+  background: transparent;
+  border: none;
   color: #ff6b6b;
-  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 700;
   cursor: pointer;
-  font-size: 0.9rem;
-  font-weight: 600;
-  transition: all 0.15s;
-  &:hover:not(:disabled) { background: rgba(255,107,107,0.22); }
-  &:disabled { opacity: 0.5; cursor: not-allowed; }
+  transition: background 0.15s;
+  &:hover:not(:disabled) {
+    background: rgba(255,107,107,0.08);
+  }
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+`
+
+const DialogDividerVertical = styled.div`
+  width: 1px;
+  background: #2d3748;
 `

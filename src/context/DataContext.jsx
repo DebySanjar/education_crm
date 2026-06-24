@@ -25,6 +25,7 @@ import {
   updateSurvey as updateSurveyFS,
   deleteSurvey as deleteSurveyFS,
   addSubmission as addSubmissionFS,
+  deleteSubmission as deleteSubmissionFS,
 } from '../services/firestoreService'
 import { useToast } from './ToastContext'
 
@@ -260,6 +261,16 @@ export function DataProvider({ children }) {
     return result
   }
 
+  const deleteSubmission = async (id, surveyId) => {
+    const result = await deleteSubmissionFS(id, surveyId)
+    if (result.success) {
+      toast.success("Ariza o'chirildi.")
+    } else {
+      toast.error("Ariza o'chirilmadi.")
+    }
+    return result
+  }
+
   const clearAllData = async () => {
     const result = await clearAllDataFS()
     if (result.success) {
@@ -298,7 +309,8 @@ export function DataProvider({ children }) {
       updateSurvey,
       deleteSurvey,
       submissions,
-      addSubmission
+      addSubmission,
+      deleteSubmission
     }}>
       {children}
     </DataContext.Provider>

@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import styled from 'styled-components'
 import { useData } from '../context/DataContext'
+import { useToast } from '../context/ToastContext'
 import { MdAdd, MdLink, MdDelete } from 'react-icons/md'
 
 const Wrapper = styled.div`
@@ -143,38 +144,83 @@ const StatValue = styled.span`
   color: #00e0ff;
 `
 
-const LinkInput = styled.div`
+// iOS-style dialog styles
+const DialogOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 600;
   display: flex;
-  gap: 8px;
-  background: #0f1117;
-  border: 1px solid #1e2235;
-  padding: 10px 14px;
-  border-radius: 8px;
   align-items: center;
+  justify-content: center;
+  padding: 16px;
 `
 
-const LinkText = styled.input`
-  flex: 1;
-  border: none;
-  background: transparent;
+const Dialog = styled.div`
+  background: #1c1f2e;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 340px;
+  overflow: hidden;
+`
+
+const DialogTitle = styled.div`
+  font-size: 1.05rem;
+  font-weight: 700;
   color: #e2e8f0;
-  font-size: 0.85rem;
-  outline: none;
+  text-align: center;
+  padding: 20px 20px 8px;
 `
 
-const CopyButton = styled.button`
-  padding: 6px 12px;
-  border-radius: 6px;
-  border: 1px solid #00e0ff44;
-  background: #00e0ff18;
+const DialogText = styled.div`
+  font-size: 0.9rem;
+  color: #8892b0;
+  text-align: center;
+  padding: 0 20px 16px;
+  line-height: 1.5;
+`
+
+const DialogDivider = styled.div`
+  height: 1px;
+  background: #2d3748;
+`
+
+const DialogBtns = styled.div`
+  display: flex;
+  width: 100%;
+`
+
+const DialogCancel = styled.button`
+  flex: 1;
+  padding: 14px;
+  background: transparent;
+  border: none;
   color: #00e0ff;
-  font-size: 0.75rem;
-  font-weight: 600;
+  font-size: 1rem;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.15s;
-  &:hover {
-    background: #00e0ff28;
-  }
+  transition: background 0.15s;
+  &:hover:not(:disabled) { background: rgba(0,224,255,0.08); }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+`
+
+const DialogConfirm = styled.button`
+  flex: 1;
+  padding: 14px;
+  background: transparent;
+  border: none;
+  color: #ff6b6b;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+  &:hover:not(:disabled) { background: rgba(255,107,107,0.08); }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+`
+
+const DialogDividerVertical = styled.div`
+  width: 1px;
+  background: #2d3748;
 `
 
 const ModalOverlay = styled.div`
@@ -380,15 +426,19 @@ const availableFields = [
 
 const SurveysList = () => {
   const { surveys, addSurvey, deleteSurvey } = useData()
+  const toast = useToast()
   const [showModal, setShowModal] = useState(false)
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [selectedFields, setSelectedFields] = useState(['fullName', 'phone']) // Default fields
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [surveyToDelete, setSurveyToDelete] = useState(null)
+  const [deleting, setDeleting] = useState(false)
 
-  const copyLink = (surveyId) => {
+  const copyLink = async (surveyId) => {
     const link = `${window.location.origin}/survey/${surveyId}`
-    navigator.clipboard.writeText(link)
-    alert('Link nusxalandi!')
+    await navigator.clipboard.writeText(link)
+    toast.success('Link nusxalandi!')
   }
 
   const toggleField = (fieldId) => {
@@ -413,6 +463,15 @@ const SurveysList = () => {
     setDescription('')
     setSelectedFields(['fullName', 'phone'])
     setShowModal(false)
+  }
+
+  const handleDeleteSurvey = async () => {
+    if (!surveyToDelete) return
+    setDeleting(true)
+    await deleteSurvey(surveyToDelete.id)
+    setDeleting(false)
+    setShowDeleteDialog(false)
+    setSurveyToDelete(null)
   }
 
   return (
@@ -440,7 +499,10 @@ const SurveysList = () => {
                   <IconButton onClick={() => copyLink(survey.id)} title="Link nusxalash">
                     <MdLink size={16} />
                   </IconButton>
-                  <IconButton className="danger" onClick={() => deleteSurvey(survey.id)} title="O'chirish">
+                  <IconButton className="danger" onClick={() => {
+                    setSurveyToDelete(survey)
+                    setShowDeleteDialog(true)
+                  }} title="O'chirish">
                     <MdDelete size={16} />
                   </IconButton>
                 </CardActions>
@@ -462,10 +524,6 @@ const SurveysList = () => {
                   </StatValue>
                 </Stat>
               </StatsRow>
-              <LinkInput>
-                <LinkText value={`${window.location.origin}/survey/${survey.id}`} readOnly />
-                <CopyButton onClick={() => copyLink(survey.id)}>Nusxa olish</CopyButton>
-              </LinkInput>
             </Card>
           ))}
         </CardsGrid>
@@ -525,6 +583,35 @@ const SurveysList = () => {
             </Form>
           </Modal>
         </ModalOverlay>
+      )}
+
+      {/* Delete Survey Confirmation Dialog (iOS-style) */}
+      {showDeleteDialog && (
+        <DialogOverlay onClick={() => !deleting && setShowDeleteDialog(false)}>
+          <Dialog onClick={e => e.stopPropagation()}>
+            <DialogTitle>O'chirishni tasdiqlang</DialogTitle>
+            <DialogText>
+              "{surveyToDelete?.name}" sorovnomasini o'chirishni xohlaysizmi? 
+              Bu amalni qaytarib bo'lmaydi!
+            </DialogText>
+            <DialogDivider />
+            <DialogBtns>
+              <DialogCancel 
+                onClick={() => setShowDeleteDialog(false)}
+                disabled={deleting}
+              >
+                Bekor qilish
+              </DialogCancel>
+              <DialogDividerVertical />
+              <DialogConfirm 
+                onClick={handleDeleteSurvey}
+                disabled={deleting}
+              >
+                {deleting ? 'O'chirilmoqda...' : 'O\'chirish'{'}'}
+              </DialogConfirm>
+            </DialogBtns>
+          </Dialog>
+        </DialogOverlay>
       )}
     </Wrapper>
   )
