@@ -3,6 +3,7 @@ import styled, { keyframes } from 'styled-components'
 import { useData } from '../context/DataContext'
 import { saveAs } from 'file-saver'
 import ExcelTicketBtn from '../components/ExcelTicketBtn'
+import Checkbox from '../components/Checkbox'
 import {
   MdCheckCircle, MdCancel, MdDownload, MdCalendarToday,
   MdPeople, MdSearch, MdSave, MdLock,
@@ -277,10 +278,11 @@ export default function Attendance() {
                   </Td>
                   <Td style={{ textAlign: 'center' }}>
                     {editable ? (
-                      <CheckboxLabel $isKeldi={isKeldi}>
-                        <input type="checkbox" checked={isKeldi} onChange={() => handleToggle(s.id)} />
-                        <Checkmark $isKeldi={isKeldi} />
-                      </CheckboxLabel>
+                      <Checkbox
+                        checked={isKeldi}
+                        onChange={() => handleToggle(s.id)}
+                        id={s.id}
+                      />
                     ) : (
                       <LockIcon title="O'zgartirish mumkin emas"><MdLock /></LockIcon>
                     )}
