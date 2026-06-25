@@ -83,7 +83,7 @@ export function DataProvider({ children }) {
     // Submissions — real-time
     const unsubSubmissions = subscribeToSubmissions((data) => {
       setSubmissions(data)
-      // O'qilmagan submissionlar sonini hisoblash
+      // O'qilmagan submissionlarni hisoblash (isRead maydoni bo'lmasa, o'qilmagan deb hisoblash
       const unreadCount = data.filter(sub => !sub.isRead).length
       setUnreadSubmissionsCount(unreadCount)
     })

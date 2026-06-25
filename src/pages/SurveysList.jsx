@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import styled from 'styled-components'
 import { useData } from '../context/DataContext'
 import { useToast } from '../context/ToastContext'
-import { MdAdd, MdLink, MdDelete, MdVisibility } from 'react-icons/md'
+import { MdAdd, MdLink, MdDelete, MdEdit, MdVisibility } from 'react-icons/md'
 
 const Wrapper = styled.div`
   display: flex;
@@ -425,9 +425,10 @@ const availableFields = [
 ]
 
 const SurveysList = () => {
-  const { surveys, addSurvey, deleteSurvey } = useData()
+  const { surveys, addSurvey, deleteSurvey, updateSurvey } = useData()
   const toast = useToast()
   const [showModal, setShowModal] = useState(false)
+  const [editingSurvey, setEditingSurvey] = useState(null)
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [selectedFields, setSelectedFields] = useState(['fullName', 'phone']) // Default fields
@@ -446,6 +447,14 @@ const SurveysList = () => {
     window.open(link, '_blank')
   }
 
+  const openEditModal = (survey) => {
+    setEditingSurvey(survey)
+    setName(survey.name)
+    setDescription(survey.description || '')
+    setSelectedFields(survey.fields?.map(f => f.id || f.name) || ['fullName', 'phone'])
+    setShowModal(true)
+  }
+
   const toggleField = (fieldId) => {
     setSelectedFields(prev => 
       prev.includes(fieldId) 
@@ -457,16 +466,27 @@ const SurveysList = () => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!name.trim()) return
-
-    await addSurvey({
-      name,
-      description,
-      fields: availableFields.filter(f => selectedFields.includes(f.id))
-    })
+    
+    if (editingSurvey) {
+      // Tahrirlash
+      await updateSurvey(editingSurvey.id, {
+        name,
+        description,
+        fields: availableFields.filter(f => selectedFields.includes(f.id))
+      })
+    } else {
+      // Yangi yaratish
+      await addSurvey({
+        name,
+        description,
+        fields: availableFields.filter(f => selectedFields.includes(f.id))
+      })
+    }
 
     setName('')
     setDescription('')
     setSelectedFields(['fullName', 'phone'])
+    setEditingSurvey(null)
     setShowModal(false)
   }
 
@@ -486,7 +506,13 @@ const SurveysList = () => {
           <h2>Sorovnomalar</h2>
           <p>O'quvchilar uchun ariza formalarini boshqaring</p>
         </TitleBlock>
-        <Button onClick={() => setShowModal(true)}>
+        <Button onClick={() => {
+          setEditingSurvey(null)
+          setName('')
+          setDescription('')
+          setSelectedFields(['fullName', 'phone'])
+          setShowModal(true)
+        }}>
           <MdAdd size={18} />
           Yangi sorovnoma
         </Button>
@@ -503,6 +529,9 @@ const SurveysList = () => {
                 <CardActions>
                   <IconButton onClick={() => openSurvey(survey.id)} title="Formani ko'rish">
                     <MdVisibility size={16} />
+                  </IconButton>
+                  <IconButton onClick={() => openEditModal(survey)} title="Tahrirlash">
+                    <MdEdit size={16} />
                   </IconButton>
                   <IconButton onClick={() => copyLink(survey.id)} title="Link nusxalash">
                     <MdLink size={16} />
@@ -541,8 +570,13 @@ const SurveysList = () => {
         <ModalOverlay onClick={(e) => e.target === e.target && setShowModal(false)}>
           <Modal onClick={(e) => e.stopPropagation()}>
             <ModalHeader>
-              <ModalTitle>Yangi sorovnoma yaratish</ModalTitle>
-              <CloseButton onClick={() => setShowModal(false)}>✕</CloseButton>
+              <ModalTitle>
+                {editingSurvey ? 'Sorovnomani tahrirlash' : 'Yangi sorovnoma yaratish'}
+              </ModalTitle>
+              <CloseButton onClick={() => {
+                setShowModal(false)
+                setEditingSurvey(null)
+              }}>✕</CloseButton>
             </ModalHeader>
             <Form onSubmit={handleSubmit}>
               <FormGroup>
