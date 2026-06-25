@@ -9,14 +9,26 @@ export default defineConfig({
   },
   build: {
     sourcemap: false,
-    chunkSizeWarningLimit: 1600,
+    chunkSizeWarningLimit: 1000,
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true,
+        drop_debugger: true,
+      },
+    },
+    cssMinify: true,
     rollupOptions: {
       output: {
         manualChunks: {
-          vendor:   ['react', 'react-dom'],
+          vendor: ['react', 'react-dom'],
           firebase: ['firebase/app', 'firebase/firestore', 'firebase/auth'],
-        }
-      }
-    }
+          charts: ['recharts'],
+          pdf: ['jspdf'],
+          excel: ['exceljs', 'file-saver', 'xlsx'],
+          ui: ['framer-motion', 'styled-components', 'react-icons'],
+        },
+      },
+    },
   },
 })
