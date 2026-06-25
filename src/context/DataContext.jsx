@@ -211,7 +211,9 @@ export function DataProvider({ children }) {
   }
 
   const updateGroup = async (id, data) => {
-    const result = await updateGroupFS(id, data)
+    // Find the old group to get the original name
+    const oldGroup = groups.find(g => g.id === id)
+    const result = await updateGroupFS(id, data, oldGroup?.name || null)
     if (result.success) {
       toast.success("Guruh yangilandi.")
     } else {

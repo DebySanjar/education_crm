@@ -254,11 +254,27 @@ export const addGroup = async (groupData) => {
   }
 }
 
-export const updateGroup = async (id, data) => {
+export const updateGroup = async (id, data, oldName = null) => {
   try {
+    // Update group itself
     await updateDoc(doc(db, COLLECTIONS.GROUPS, id), {
       ...data, updatedAt: serverTimestamp()
     })
+
+    // If group name changed, update all students in that group
+    if (oldName && data.name && oldName !== data.name) {
+      const q = query(collection(db, COLLECTIONS.STUDENTS), where('group', '==', oldName))
+      const snapshot = await getDocs(q)
+      
+      if (snapshot.docs.length > 0) {
+        const batch = writeBatch(db)
+        snapshot.docs.forEach(docSnap => {
+          batch.update(docSnap.ref, { group: data.name, updatedAt: serverTimestamp() })
+        })
+        await batch.commit()
+      }
+    }
+
     return { success: true }
   } catch (error) {
     return { success: false, error: error.message }
