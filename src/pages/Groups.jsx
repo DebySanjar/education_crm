@@ -105,15 +105,6 @@ export default function Groups() {
             return (
               <CardWrap key={g.id}>
                 <StyledCard>
-                  <CardPatternGrid />
-                  <CardOverlayDots />
-
-                  <BoldPattern>
-                    <svg viewBox="0 0 100 100">
-                      <path strokeDasharray="15 10" strokeWidth={10} stroke="rgba(0,224,255,0.15)" fill="none" d="M0,0 L100,0 L100,100 L0,100 Z" />
-                    </svg>
-                  </BoldPattern>
-
                   <CardTitleArea>
                     <TitleLeft>
                       <MdGroup style={{ fontSize: '1.1rem' }} />
@@ -168,16 +159,6 @@ export default function Groups() {
                       </CardActions>
                     )}
                   </CardBody>
-
-                  <DotsPattern>
-                    <svg viewBox="0 0 80 40">
-                      {[10,30,50,70].map(x => <circle key={x+'a'} fill="rgba(0,224,255,0.15)" r={3} cy={10} cx={x} />)}
-                      {[20,40,60].map(x => <circle key={x+'b'} fill="rgba(0,224,255,0.15)" r={3} cy={20} cx={x} />)}
-                      {[10,30,50,70].map(x => <circle key={x+'c'} fill="rgba(0,224,255,0.15)" r={3} cy={30} cx={x} />)}
-                    </svg>
-                  </DotsPattern>
-                  <AccentShape />
-                  <CornerSlice />
                 </StyledCard>
               </CardWrap>
             )
@@ -255,10 +236,6 @@ export default function Groups() {
 
 /* ─── Animations ─── */
 const fadeUp = keyframes`from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); }`
-const pulse = keyframes`
-  0%,100% { box-shadow: 6px 6px 0 #000, 0 0 0 0 rgba(0,224,255,0.2); }
-  50%      { box-shadow: 6px 6px 0 #000, 0 0 0 6px rgba(0,224,255,0); }
-`
 
 /* ─── Layout ─── */
 const Wrapper = styled.div`display:flex; flex-direction:column; gap:24px;`
@@ -302,32 +279,17 @@ const CardWrap = styled.div`animation:${fadeUp} 0.4s ease both;`
 
 const StyledCard = styled.div`
   position:relative;
-  background:#0f1117;
-  border:2px solid #1e2235;
-  border-radius:10px;
+  background:#13161f;
+  border:1px solid #1e2235;
+  border-radius:12px;
   overflow:hidden;
-  transition:all 0.35s cubic-bezier(0.23,1,0.32,1);
-  animation:${pulse} 4s ease-in-out infinite;
+  transition:all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: default;
 
   &:hover {
-    transform:translate(-3px,-3px);
-    border-color:#00e0ff44;
-    box-shadow:8px 8px 0 #000, 0 0 30px rgba(0,224,255,0.08);
-    animation:none;
-  }
-
-  &::before {
-    content:"";
-    position:absolute; top:-12px; right:-12px;
-    width:36px; height:36px;
-    background:#00e0ff;
-    transform:rotate(45deg);
-    z-index:1;
-  }
-  &::after {
-    content:"★";
-    position:absolute; top:5px; right:5px;
-    color:#000; font-size:0.9rem; font-weight:bold; z-index:2;
+    transform:translateY(-2px);
+    border-color:#2d3748;
+    box-shadow:0 8px 24px rgba(0,0,0,0.2);
   }
 `
 
@@ -361,15 +323,10 @@ const BoldPattern = styled.div`
 const CardTitleArea = styled.div`
   position:relative;
   padding:14px 18px;
-  background:linear-gradient(135deg,#00e0ff18,#00e0ff08);
-  border-bottom:2px solid #1e2235;
+  background:#0f1117;
+  border-bottom:1px solid #1e2235;
   display:flex; justify-content:space-between; align-items:center;
   z-index:2;
-  &::before {
-    content:"";
-    position:absolute; inset:0;
-    background:repeating-linear-gradient(45deg,rgba(0,224,255,0.03),rgba(0,224,255,0.03) 4px,transparent 4px,transparent 8px);
-  }
 `
 
 const TitleLeft = styled.div`
@@ -380,14 +337,10 @@ const TitleLeft = styled.div`
 `
 
 const CardTag = styled.span`
-  background:#000; color:#00e0ff;
-  font-size:0.62rem; font-weight:800;
-  padding:3px 8px; border:1.5px solid #00e0ff44;
-  border-radius:4px; letter-spacing:0.1em; text-transform:uppercase;
-  transform:rotate(3deg);
-  transition:all 0.3s;
-  z-index:2;
-  ${StyledCard}:hover & { transform:rotate(-2deg) scale(1.1); }
+  background:#1a1d2e; color:#00e0ff;
+  font-size:0.7rem; font-weight:600;
+  padding:3px 8px; border:1px solid #00e0ff44;
+  border-radius:6px;
 `
 
 const CardBody = styled.div`

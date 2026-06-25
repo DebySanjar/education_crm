@@ -57,18 +57,20 @@ const CardsGrid = styled.div`
 `
 
 const Card = styled.div`
-  background: #0f1117;
-  border: 2px solid #1e2235;
+  background: #13161f;
+  border: 1px solid #1e2235;
   border-radius: 12px;
   padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 16px;
-  transition: all 0.2s;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: default;
+  
   &:hover {
-    border-color: #334155;
-    transform: translateY(-4px);
-    box-shadow: 0 12px 24px rgba(0,0,0,0.3);
+    border-color: #2d3748;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
   }
 `
 

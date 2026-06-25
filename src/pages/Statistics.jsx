@@ -438,24 +438,33 @@ const KpiCard = styled.div`
   position: relative;
   background: #13161f;
   border: 1px solid #1e2235;
-  border-radius: 16px;
+  border-radius: 12px;
   padding: 20px;
   overflow: hidden;
-  transition: all 0.3s ease;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: default;
+  
   &:hover {
-    border-color: ${props => props.$color}44;
-    box-shadow: 0 0 30px ${props => props.$color}22;
+    transform: translateY(-2px);
+    border-color: ${props => props.$color}33;
+    box-shadow: 0 8px 24px ${props => props.$color}11;
   }
 `
 
 const KpiGlow = styled.div`
   position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle, ${props => props.$color}15 0%, transparent 70%);
+  top: -30%;
+  left: -30%;
+  width: 160%;
+  height: 160%;
+  background: radial-gradient(circle, ${props => props.$color}08 0%, transparent 60%);
   pointer-events: none;
+  opacity: 0.7;
+  transition: opacity 0.25s ease;
+  
+  ${KpiCard}:hover & {
+    opacity: 1;
+  }
 `
 
 const KpiTop = styled.div`
@@ -525,12 +534,14 @@ const ChartWrapper = styled.div`
 const ChartCard = styled.div`
   background: #13161f;
   border: 1px solid #1e2235;
-  border-radius: 16px;
+  border-radius: 12px;
   padding: 24px;
-  transition: all 0.3s ease;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  
   &:hover {
     border-color: #2d3748;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.25);
   }
 `
 

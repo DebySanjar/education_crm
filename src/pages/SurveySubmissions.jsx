@@ -86,6 +86,12 @@ const TableCard = styled.div`
   border: 1px solid #1e2235;
   border-radius: 12px;
   overflow-x: auto;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &:hover {
+    border-color: #2d3748;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+  }
 `
 
 const Table = styled.table`
