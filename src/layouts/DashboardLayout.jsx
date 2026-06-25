@@ -5,8 +5,8 @@ import { useAuth } from '../context/AuthContext'
 import { useData } from '../context/DataContext'
 import {
   MdDashboard, MdPeople, MdChecklist, MdPayment, MdBarChart, MdSettings,
-  MdLogout, MdMenu, MdDirectionsCar, MdChevronLeft, MdClose, MdMoneyOff,
-  MdExpandMore, MdGroup, MdDescription,
+  MdLogout, MdMenu, MdChevronLeft, MdClose, MdMoneyOff,
+  MdExpandMore, MdGroup, MdDescription, MdAdminPanelSettings
 } from 'react-icons/md'
 
 const navItems = [
@@ -53,9 +53,9 @@ export default function DashboardLayout() {
 
       <Sidebar id="sidebar-nav" $collapsed={collapsed} $mobileOpen={mobileOpen}>
         <SidebarHeader $collapsed={collapsed}>
-          {!collapsed && <LogoIcon><MdDirectionsCar /></LogoIcon>}
+          {!collapsed && <LogoIcon><MdAdminPanelSettings /></LogoIcon>}
           {!collapsed && <LogoText>Admin<span>Panel</span></LogoText>}
-          {collapsed && <LogoIconCenter><MdDirectionsCar /></LogoIconCenter>}
+          {collapsed && <LogoIconCenter><MdAdminPanelSettings /></LogoIconCenter>}
           {!collapsed && (
             <CollapseBtn onClick={() => setCollapsed(c => !c)} title="Yopish">
               <MdChevronLeft />

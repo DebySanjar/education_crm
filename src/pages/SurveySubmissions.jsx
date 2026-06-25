@@ -74,6 +74,8 @@ const Tab = styled.button`
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s;
+  display: flex;
+  align-items: center;
   &:hover {
     color: #e2e8f0;
   }
@@ -140,6 +142,19 @@ const IconButton = styled.button`
     border-color: #ff6b6b;
     color: #ff6b6b;
   }
+`
+
+const Badge = styled.span`
+  background: #00e0ff;
+  color: #0f1117;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 10px;
+  min-width: 20px;
+  text-align: center;
+  line-height: 1;
+  margin-left: 8px;
 `
 
 const SurveySubmissions = () => {
@@ -216,16 +231,21 @@ const SurveySubmissions = () => {
         <TabsContainer>
           <Tab $active={!selectedSurveyId} onClick={() => setSelectedSurveyId(null)}>
             Barcha arizalar
+            <Badge>{submissions.length}</Badge>
           </Tab>
-          {surveys.map(survey => (
-            <Tab
-              key={survey.id}
-              $active={selectedSurveyId === survey.id}
-              onClick={() => setSelectedSurveyId(survey.id)}
-            >
-              {survey.name}
-            </Tab>
-          ))}
+          {surveys.map(survey => {
+            const surveySubmissionCount = submissions.filter(sub => sub.surveyId === survey.id).length
+            return (
+              <Tab
+                key={survey.id}
+                $active={selectedSurveyId === survey.id}
+                onClick={() => setSelectedSurveyId(survey.id)}
+              >
+                {survey.name}
+                <Badge>{surveySubmissionCount}</Badge>
+              </Tab>
+            )
+          })}
         </TabsContainer>
       )}
 
