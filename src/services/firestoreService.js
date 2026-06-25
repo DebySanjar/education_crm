@@ -343,11 +343,27 @@ export const addSurvey = async (surveyData) => {
   }
 }
 
-export const updateSurvey = async (id, data) => {
+export const updateSurvey = async (id, data, oldName = null) => {
   try {
+    // Update survey itself
     await updateDoc(doc(db, COLLECTIONS.SURVEYS, id), {
       ...data, updatedAt: serverTimestamp()
     })
+
+    // If survey name changed, update all submissions for that survey
+    if (oldName && data.name && oldName !== data.name) {
+      const q = query(collection(db, COLLECTIONS.SUBMISSIONS), where('surveyId', '==', id))
+      const snapshot = await getDocs(q)
+      
+      if (snapshot.docs.length > 0) {
+        const batch = writeBatch(db)
+        snapshot.docs.forEach(docSnap => {
+          batch.update(docSnap.ref, { surveyName: data.name, updatedAt: serverTimestamp() })
+        })
+        await batch.commit()
+      }
+    }
+
     return { success: true }
   } catch (error) {
     return { success: false, error: error.message }

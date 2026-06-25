@@ -243,7 +243,9 @@ export function DataProvider({ children }) {
   }
 
   const updateSurvey = async (id, data) => {
-    const result = await updateSurveyFS(id, data)
+    // Find the old survey to get the original name
+    const oldSurvey = surveys.find(s => s.id === id)
+    const result = await updateSurveyFS(id, data, oldSurvey?.name || null)
     if (result.success) {
       toast.success("Sorovnoma yangilandi.")
     } else {
