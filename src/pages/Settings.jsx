@@ -3,7 +3,6 @@ import styled from 'styled-components'
 import { useAuth } from '../context/AuthContext'
 import { useData } from '../context/DataContext'
 import { useToast } from '../context/ToastContext'
-import { generateTestData } from '../services/firestoreService'
 import {
   MdSave,
   MdCheckCircle,
@@ -11,8 +10,7 @@ import {
   MdDeleteForever,
   MdWarning,
   MdPowerSettingsNew,
-  MdDashboard,
-  MdPlayArrow
+  MdDashboard
 } from 'react-icons/md'
 
 const Wrapper = styled.div`
@@ -211,22 +209,6 @@ export default function Settings() {
   const [showClearDialog, setShowClearDialog] = useState(false)
   const [showLogoutDialog, setShowLogoutDialog] = useState(false)
   const [clearing, setClearing] = useState(false)
-  const [generating, setGenerating] = useState(false)
-
-  const handleGenerateTestData = async () => {
-    setGenerating(true)
-    try {
-      const result = await generateTestData()
-      if (result.success) {
-        toast.success('Test ma\'lumotlar yaratildi!')
-      } else {
-        toast.error('Xato yuz berdi!')
-      }
-    } catch (error) {
-      toast.error('Xato yuz berdi!')
-    }
-    setGenerating(false)
-  }
 
   const handleSave = () => {
     setAutoLogoutMinutes(Number(tempAutoLogoutMinutes))
@@ -296,49 +278,7 @@ export default function Settings() {
         </SectionBody>
       </Section>
 
-      {isSuperAdmin() && (
-        <Section>
-          <SectionHeader>
-            <MdPlayArrow style={{ color: '#10b981' }} />
-            <h3>Performance test uchun ma'lumotlar yaratish</h3>
-          </SectionHeader>
-          <SectionBody>
-            <WarningBox style={{ background: 'rgba(16, 185, 129, 0.06)', borderColor: 'rgba(16, 185, 129, 0.25)' }}>
-              <MdWarning style={{ color: '#10b981' }} />
-              <div>
-                <div className="title" style={{ color: '#10b981' }}>Test ma'lumotlari</div>
-                <div className="text">
-                  Bu tugma quyidagi ma'lumotlarni yaratadi: <br/>
-                  • 130 ta o'quvchi <br/>
-                  • 50 ta chiqim <br/>
-                  • 20 ta sorovnoma <br/>
-                  • 80 ta arizachi <br/>
-                  • 100 ta to'lov <br/>
-                  • 30 kunlik davomat
-                </div>
-              </div>
-            </WarningBox>
 
-            <Button
-              onClick={handleGenerateTestData}
-              disabled={generating}
-              $success
-            >
-              {generating ? (
-                <>
-                  <MdTimer />
-                  Yaratilmoqda...
-                </>
-              ) : (
-                <>
-                  <MdPlayArrow />
-                  Test ma'lumotlarini yaratish
-                </>
-              )}
-            </Button>
-          </SectionBody>
-        </Section>
-      )}
 
       {isSuperAdmin() && (
         <Section>
