@@ -11,7 +11,8 @@ import {
   query,
   orderBy,
   where,
-  serverTimestamp
+  serverTimestamp,
+  writeBatch
 } from 'firebase/firestore'
 import { db } from '../config/firebase'
 
@@ -381,6 +382,7 @@ export const addSubmission = async (submissionData) => {
   try {
     const docRef = await addDoc(collection(db, COLLECTIONS.SUBMISSIONS), {
       ...submissionData,
+      isRead: false,
       createdAt: serverTimestamp()
     })
     
@@ -394,6 +396,27 @@ export const addSubmission = async (submissionData) => {
     }
     
     return { success: true, id: docRef.id }
+  } catch (error) {
+    return { success: false, error: error.message }
+  }
+}
+
+// Barcha o'qilmagan submissionlarni o'qilgan deb belgilash
+export const markAllSubmissionsAsRead = async () => {
+  try {
+    const q = query(collection(db, COLLECTIONS.SUBMISSIONS), where('isRead', '==', false))
+    const snapshot = await getDocs(q)
+    
+    if (snapshot.size > 0) {
+      // Batch update - samaraliroq
+      const batch = writeBatch(db)
+      snapshot.docs.forEach(doc => {
+        batch.update(doc.ref, { isRead: true })
+      })
+      await batch.commit()
+    }
+    
+    return { success: true }
   } catch (error) {
     return { success: false, error: error.message }
   }

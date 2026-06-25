@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import styled from 'styled-components'
 import { useData } from '../context/DataContext'
 import { MdSearch, MdDelete } from 'react-icons/md'
@@ -113,6 +113,10 @@ const Td = styled.td`
   white-space: nowrap;
 `
 
+const UnreadTd = styled(Td)`
+  background: rgba(0, 224, 255, 0.05);
+`
+
 const EmptyState = styled.div`
   text-align: center;
   padding: 60px 20px;
@@ -139,12 +143,17 @@ const IconButton = styled.button`
 `
 
 const SurveySubmissions = () => {
-  const { surveys, submissions, deleteSubmission } = useData()
+  const { surveys, submissions, deleteSubmission, markSubmissionsAsRead } = useData()
   const [selectedSurveyId, setSelectedSurveyId] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [submissionToDelete, setSubmissionToDelete] = useState(null)
   const [deleting, setDeleting] = useState(false)
+
+  // Sahifa ochilganda barcha submissionlarni o'qilgan deb belgilash
+  useEffect(() => {
+    markSubmissionsAsRead()
+  }, [markSubmissionsAsRead])
 
   const filteredSubmissions = selectedSurveyId
     ? submissions.filter(s => s.surveyId === selectedSurveyId)
@@ -240,22 +249,27 @@ const SurveySubmissions = () => {
                 </Td>
               </tr>
             ) : (
-              searchedSubmissions.map(submission => (
-                <tr key={submission.id}>
-                  {headers.map(key => (
-                    <Td key={key}>{submission[key] || '-'}</Td>
-                  ))}
-                  <Td>{surveys.find(s => s.id === submission.surveyId)?.name || 'Noma\'lum'}</Td>
-                  <Td>
-                    {submission.createdAt?.toDate?.().toLocaleString('uz-UZ') || 'Noma\'lum'}
-                  </Td>
-                  <Td style={{ textAlign: 'center' }}>
-                    <IconButton onClick={() => handleDeleteClick(submission)}>
-                      <MdDelete size={18} />
-                    </IconButton>
-                  </Td>
-                </tr>
-              ))
+              searchedSubmissions.map(submission => {
+                const isUnread = !submission.isRead
+                const CellComponent = isUnread ? UnreadTd : Td
+                
+                return (
+                  <tr key={submission.id}>
+                    {headers.map(key => (
+                      <CellComponent key={key}>{submission[key] || '-'}</CellComponent>
+                    ))}
+                    <CellComponent>{surveys.find(s => s.id === submission.surveyId)?.name || 'Noma\'lum'}</CellComponent>
+                    <CellComponent>
+                      {submission.createdAt?.toDate?.().toLocaleString('uz-UZ') || 'Noma\'lum'}
+                    </CellComponent>
+                    <CellComponent style={{ textAlign: 'center' }}>
+                      <IconButton onClick={() => handleDeleteClick(submission)}>
+                        <MdDelete size={18} />
+                      </IconButton>
+                    </CellComponent>
+                  </tr>
+                )
+              })
             )}
           </tbody>
         </Table>

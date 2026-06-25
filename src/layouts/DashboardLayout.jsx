@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import styled from 'styled-components'
 import { useAuth } from '../context/AuthContext'
+import { useData } from '../context/DataContext'
 import {
   MdDashboard, MdPeople, MdChecklist, MdPayment, MdBarChart, MdSettings,
   MdLogout, MdMenu, MdDirectionsCar, MdChevronLeft, MdClose, MdMoneyOff,
@@ -25,6 +26,7 @@ const navItems = [
 
 export default function DashboardLayout() {
   const { logout } = useAuth()
+  const { unreadSubmissionsCount } = useData()
   const navigate = useNavigate()
   const location = useLocation()
   const [collapsed, setCollapsed] = useState(false)
@@ -147,9 +149,11 @@ export default function DashboardLayout() {
             <>
               <NavItem to="/surveys" $collapsed={collapsed} onClick={() => setMobileOpen(false)} title="Sorovnomalar">
                 <span className="icon"><MdDescription /></span>
+                {unreadSubmissionsCount > 0 && <Badge style={{ position: 'absolute', top: '4px', right: '4px' }}>{unreadSubmissionsCount}</Badge>}
               </NavItem>
               <NavItem to="/surveys/submissions" $collapsed={collapsed} onClick={() => setMobileOpen(false)} title="Arizachilar">
                 <span className="icon"><MdDescription /></span>
+                {unreadSubmissionsCount > 0 && <Badge style={{ position: 'absolute', top: '4px', right: '4px' }}>{unreadSubmissionsCount}</Badge>}
               </NavItem>
             </>
           ) : (
@@ -160,6 +164,7 @@ export default function DashboardLayout() {
               >
                 <span className="icon"><MdDescription /></span>
                 <span className="label">Sorovnomalar</span>
+                {unreadSubmissionsCount > 0 && <Badge>{unreadSubmissionsCount}</Badge>}
                 <ChevronIcon $open={surveysOpen}><MdExpandMore /></ChevronIcon>
               </ParentNavItem>
               {surveysOpen && (
@@ -177,6 +182,7 @@ export default function DashboardLayout() {
                   >
                     <span className="dot" />
                     <span>Arizachilar</span>
+                    {unreadSubmissionsCount > 0 && <Badge>{unreadSubmissionsCount}</Badge>}
                   </SubNavItem>
                 </SubNav>
               )}
@@ -345,6 +351,7 @@ const ParentNavItem = styled.button`
   width: 100%;
   white-space: nowrap;
   transition: all 0.18s;
+  position: relative;
 
   .icon { font-size: 1.25rem; flex-shrink: 0; }
   .label { flex: 1; }
@@ -384,6 +391,7 @@ const SubNavItem = styled(NavLink)`
   font-weight: 500;
   transition: all 0.18s;
   white-space: nowrap;
+  position: relative;
 
   .dot {
     width: 6px;
@@ -420,6 +428,7 @@ const NavItem = styled(NavLink)`
   border-left: 3px solid transparent;
   transition: all 0.18s;
   white-space: nowrap;
+  position: relative;
 
   .icon {
     font-size: 1.25rem;
@@ -560,6 +569,18 @@ const AdminBadge = styled.div`
   border-radius: 20px;
   font-size: 0.8rem;
   font-weight: 600;
+`
+
+const Badge = styled.span`
+  background: #ff6b6b;
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 10px;
+  min-width: 18px;
+  text-align: center;
+  line-height: 1;
 `
 
 const Content = styled.main`

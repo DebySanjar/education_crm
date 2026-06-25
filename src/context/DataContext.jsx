@@ -26,6 +26,7 @@ import {
   deleteSurvey as deleteSurveyFS,
   addSubmission as addSubmissionFS,
   deleteSubmission as deleteSubmissionFS,
+  markAllSubmissionsAsRead,
 } from '../services/firestoreService'
 import { useToast } from './ToastContext'
 
@@ -41,6 +42,7 @@ export function DataProvider({ children }) {
   const [balance, setBalance] = useState({})
   const [surveys, setSurveys] = useState([])
   const [submissions, setSubmissions] = useState([])
+  const [unreadSubmissionsCount, setUnreadSubmissionsCount] = useState(0)
   const [loading, setLoading] = useState(true)
 
   // Qaysi collectionlar yuklandi — loading ni to'g'ri boshqarish uchun
@@ -79,7 +81,12 @@ export function DataProvider({ children }) {
     const unsubSurveys = subscribeToSurveys(setSurveys)
 
     // Submissions — real-time
-    const unsubSubmissions = subscribeToSubmissions(setSubmissions)
+    const unsubSubmissions = subscribeToSubmissions((data) => {
+      setSubmissions(data)
+      // O'qilmagan submissionlar sonini hisoblash
+      const unreadCount = data.filter(sub => !sub.isRead).length
+      setUnreadSubmissionsCount(unreadCount)
+    })
 
     // Attendance — getDocs (bir martalik, read tejash)
     fetchAttendance().then(res => setAttendance(res.data))
@@ -271,6 +278,11 @@ export function DataProvider({ children }) {
     return result
   }
 
+  const markSubmissionsAsRead = async () => {
+    const result = await markAllSubmissionsAsRead()
+    return result
+  }
+
   const clearAllData = async () => {
     const result = await clearAllDataFS()
     if (result.success) {
@@ -310,7 +322,9 @@ export function DataProvider({ children }) {
       deleteSurvey,
       submissions,
       addSubmission,
-      deleteSubmission
+      deleteSubmission,
+      unreadSubmissionsCount,
+      markSubmissionsAsRead,
     }}>
       {children}
     </DataContext.Provider>
